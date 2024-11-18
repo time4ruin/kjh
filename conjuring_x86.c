@@ -39,16 +39,16 @@ void mfence() { asm volatile("mfence"); }
 void func(int input){
 	if (input){
 		__asm__ __volatile__(
-        ".rept 10000\n\t"
+        // ".rept 10000\n\t"
         "nop\n\t"
-        ".endr\n\t"
+        // ".endr\n\t"
         :::);
 	}
 	else {
 		__asm__ __volatile__(
-        ".rept 10000\n\t"
+        // ".rept 10000\n\t"
         "nop\n\t"
-        ".endr\n\t"
+        // ".endr\n\t"
         :::);
 	}
 }

@@ -46,31 +46,46 @@ void func(int c1, int c2){
     }
 	*/
 	asm volatile (
-        // 첫 번째 if (c1)
-        "mov %[c1], %%eax \n\t"     // c1 값을 eax에 로드
-        "cmp $0, %%eax \n\t"        // eax와 0 비교
-		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
-		"nop;nop;nop;nop;nop;nop;nop;nop; \n\t" // length of mfence;rdtsc;mfence;
-        "je skip_if1 \n\t"          // c1이 0이면 첫 번째 if문 스킵
+        "mov %[c1], %%eax;"
+        "cmp $0, %%eax;"
+        ".p2align 20, 0x90;"
+        ".rept 8;"
+        "nop;"
+        ".endr;"		
+        "je skip_if1;"
+        ".rept 10000;"
+        "nop;"
+        ".endr;"		
+		"jmp end0;"
 
-        // 두 번째 if (c2)
-        "mov %[c2], %%ebx \n\t"     // c2 값을 ebx에 로드
-        "cmp $0, %%ebx \n\t"        // ebx와 0 비교
-		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
-		"nop;nop;nop;nop;nop;nop;nop; \n\t"
-        "je skip_if2 \n\t"          // c2가 0이면 두 번째 if문 스킵
+        "mov %[c2], %%ebx;"
+        "cmp $0, %%ebx;"
+        ".p2align 20, 0x90;"
+        ".rept 15;" // offset 8 + 7 bit
+        "nop;"
+        ".endr;"		
+        "je skip_if2;"
 
-        // 의미없는 연산: c2 + 42
-        "add $42, %%ebx \n\t"       // ebx에 42를 더함
-        "mov %%ebx, %[result] \n\t" // 결과를 result에 저장
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
+		"jmp skip_if1;"
 
-        "skip_if2: \n\t"            // 두 번째 if문 종료
-        "skip_if1: \n\t"            // 첫 번째 if문 종료
+        "skip_if2:"
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
 
-        : [result] "=r" (result)    // 출력
-        : [c1] "r" (c1), [c2] "r" (c2) // 입력
-        : "eax", "ebx"              // 변경된 레지스터
+        "skip_if1:"
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
+		"end0:"	
+        : 
+        : [c1] "r" (c1), [c2] "r" (c2)
+        : "eax", "ebx"
     );
+
 }
 
 int branch_one(unsigned int value){ // (1:Taken, 0:Not-taken)
@@ -78,11 +93,22 @@ int branch_one(unsigned int value){ // (1:Taken, 0:Not-taken)
     asm volatile(
         "cmp $0x1, %%rcx;"
         ".p2align 20, 0x90;"
-        "mfence;"
-        "rdtsc;"
-        "mfence;"
-        "je label0;"
-        "label0:"
+        "mfence;"	// 3 bytes
+        "rdtsc;"	// 2 bytes
+        "mfence;"	// 3 bytes
+
+        "je label1;" // branch
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
+		"jmp end1;"
+
+        "label1:"
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
+
+		"end1:"
         "nop;"
         :"=a"(start), "=d"(d):"c"(value));
     end = rdtsc();
@@ -95,11 +121,25 @@ int branch_two(unsigned int value){ // (1:Taken, 0:Not-taken)
     asm volatile(
         "cmp $0x1, %%rcx;"
         ".p2align 20, 0x90;"
-        "mfence;"	// 3 bytes
-        "rdtsc;"	// 2 bytes
-        "mfence;"	// 3 bytes
-        "je label1;"
-        "label1:"
+        ".rept 7;" // offset 7 bytes
+        "nop;"
+        ".endr;"
+        "mfence;" // 8 bytes
+        "rdtsc;"
+        "mfence;"
+		
+        "je label2;" // branch
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
+		"jmp end2;"
+
+        "label2:"
+        ".rept 10000;"
+        "nop;"
+        ".endr;"
+
+		"end2:"
         "nop;"
         :"=a"(start), "=d"(d):"c"(value));
     end = rdtsc();
@@ -121,6 +161,28 @@ int main(){
     int *hit = (int *)malloc(sizeof(int) * testsize);
     int *miss = (int *)malloc(sizeof(int) * testsize);
 
+	for (int i = 0; i < testsize; i++){
+		// func(1, 1);
+		branch_one(1);
+		int latency1 = branch_one(1); //hit
+		// int latency2 = branch_two(1); //hit
+		test1[i] = latency1;
+		// test2[i] = latency2;
+	}
+	for (int i = 0; i < testsize; i++){
+		branch_one(1);
+		int latency1 = branch_one(0); //miss
+		// int latency2 = branch_two(1); //miss
+		test3[i] = latency1;
+		// test4[i] = latency2;
+	}
+	FILE *fp = fopen("attack.txt", "w");
+	for (int i = 0; i < testsize; i++){
+		// fprintf(fp, "%d,%d,%d,%d\n", test1[i], test2[i], test3[i], test4[i]);
+		fprintf(fp, "%d,%d,\n", test1[i], test3[i]);
+	}
+	fclose(fp);
+
 	// for (int i = 0; i < testsize; i++){
 	// 	flush(&size);
 	// 	start = rdtsc();
@@ -141,26 +203,6 @@ int main(){
 
 	// printf("hit : %lf (%lf)\n", calculateMean(hit, testsize), calculateStandardDeviation(hit, testsize));
 	// printf("miss: %lf (%lf)\n", calculateMean(miss, testsize), calculateStandardDeviation(miss, testsize));
-
-	for (int i = 0; i < testsize; i++){
-		func(1, 1);
-		int latency1 = branch_one(1); //hit
-		int latency2 = branch_two(1); //hit
-		test1[i] = latency1;
-		test2[i] = latency2;
-	}
-	for (int i = 0; i < testsize; i++){
-		func(1, 0);
-		int latency1 = branch_one(0); //miss
-		int latency2 = branch_two(1); //miss
-		test3[i] = latency1;
-		test4[i] = latency2;
-	}
-	FILE *fp = fopen("attack.txt", "w");
-	for (int i = 0; i < testsize; i++){
-		fprintf(fp, "%d,%d,%d,%d\n", test1[i], test2[i], test3[i], test4[i]);
-	}
-	fclose(fp);
 
 	// for (int i = 0; i < testsize; i++){
 	// 	func(0, 0);

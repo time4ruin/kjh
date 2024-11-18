@@ -1,3 +1,6 @@
+attack_x86: attack_x86.c
+	gcc attack_x86.c -o test.out -lm
+
 conjuring_x86: conjuring_x86.c
 	gcc conjuring_x86.c -o test.out -lm
 

@@ -78,11 +78,11 @@ void branch0(int c1){
         "mov %[c1], %%eax \n\t"     // c1 값을 eax에 로드
         "cmp $0, %%eax \n\t"        // eax와 0 비교
 		".p2align 16, 0x90 \n\t"     // 16바이트 경계로 정렬
-        "je att_if1 \n\t"          // c1이 0이면 첫 번째 if문 스킵
+        "je att_if \n\t"          // c1이 0이면 첫 번째 if문 스킵
 
         "nop;nop;nop;nop;nop; \n\t" 
 
-        "att_if1: \n\t"            // 두 번째 if문 종료
+        "att_if: \n\t"            // 두 번째 if문 종료
 
         :: [c1] "r" (c1)			// 입력
         : "eax"             		// 변경된 레지스터

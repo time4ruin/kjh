@@ -140,28 +140,28 @@ int main(){
 
 
 	for (int i = 0; i < testsize; i++){
-		func(1, 1);
+		func(0, 0);
 
 		start = rdtsc();
-		branch1(1);
+		branch1(0); //hit
 		end = rdtsc();
 		hit[i] = (int)(end - start);
 		start = rdtsc();
-		branch2(1);
+		branch2(0); //hit
 		end = rdtsc();
 		noise1[i] = (int)(end - start);
 		// printf("Time (Nano): %lld\n", hit[i]);
 	}
 
 	for (int i = 0; i < testsize; i++){
-		func(0, 1);
+		func(1, 0);
 
 		start = rdtsc();
-		branch1(1);
+		branch1(0); //miss
 		end = rdtsc();
 		miss[i] = (int)(end - start);
 		start = rdtsc();
-		branch2(1);
+		branch2(1); //miss
 		end = rdtsc();
 		noise2[i] = (int)(end - start);
 		// printf("Time (Nano): %lld\n", hit[i]);

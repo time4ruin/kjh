@@ -173,7 +173,7 @@ int main(){
 	}
 	FILE *fp = fopen("attack.txt", "w");
 	for (int i = 0; i < testsize; i++){
-		fprintf(fp, "%d\n", hittest[i]);
+		fprintf(fp, "%d,%d\n", hittest[i], misstest[i]);
 	}
 	fclose(fp);
 

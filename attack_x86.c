@@ -72,6 +72,23 @@ void func(int c1, int c2){
     );
 }
 
+void branch0(int c1){
+	asm volatile (
+        // 첫 번째 if (c1)
+        "mov %[c1], %%eax \n\t"     // c1 값을 eax에 로드
+        "cmp $0, %%eax \n\t"        // eax와 0 비교
+		".p2align 16, 0x90 \n\t"     // 16바이트 경계로 정렬
+        "je att_if1 \n\t"          // c1이 0이면 첫 번째 if문 스킵
+
+        "nop;nop;nop;nop;nop; \n\t" 
+
+        "att_if1: \n\t"            // 두 번째 if문 종료
+
+        :: [c1] "r" (c1)			// 입력
+        : "eax"             		// 변경된 레지스터
+    );
+}
+
 void branch1(int c1){
 	asm volatile (
         // 첫 번째 if (c1)
@@ -112,6 +129,7 @@ int size = 1;
 int main(){
 	uint64_t start, end;
 	int testsize = 10000;
+    int *hittest = (int *)malloc(sizeof(int) * testsize);
     int *hit = (int *)malloc(sizeof(int) * testsize);
     int *miss = (int *)malloc(sizeof(int) * testsize);
     int *noise1 = (int *)malloc(sizeof(int) * testsize);
@@ -138,40 +156,52 @@ int main(){
 	// printf("hit : %lf (%lf)\n", calculateMean(hit, testsize), calculateStandardDeviation(hit, testsize));
 	// printf("miss: %lf (%lf)\n", calculateMean(miss, testsize), calculateStandardDeviation(miss, testsize));
 
-
 	for (int i = 0; i < testsize; i++){
-		func(0, 0);
-
+		branch0(1);
 		start = rdtsc();
-		branch1(0); //hit
+		branch1(1); //hit
 		end = rdtsc();
-		hit[i] = (int)(end - start);
-		start = rdtsc();
-		branch2(0); //hit
-		end = rdtsc();
-		noise1[i] = (int)(end - start);
-		// printf("Time (Nano): %lld\n", hit[i]);
+		hittest[i] = (int)(end - start);
 	}
-
+	FILE *fp = fopen("attack.txt", "w");
 	for (int i = 0; i < testsize; i++){
-		func(1, 0);
-
-		start = rdtsc();
-		branch1(0); //miss
-		end = rdtsc();
-		miss[i] = (int)(end - start);
-		start = rdtsc();
-		branch2(1); //miss
-		end = rdtsc();
-		noise2[i] = (int)(end - start);
-		// printf("Time (Nano): %lld\n", hit[i]);
-	}
-
-    FILE *fp = fopen("conjuring.txt", "w");
-	for (int i = 0; i < testsize; i++){
-		fprintf(fp, "%d,%d,%d,%d\n", hit[i], noise1[i], miss[i], noise2[i]);
+		fprintf(fp, "%d\n", hittest[i]);
 	}
 	fclose(fp);
+
+	// for (int i = 0; i < testsize; i++){
+	// 	func(0, 0);
+
+	// 	start = rdtsc();
+	// 	branch1(0); //hit
+	// 	end = rdtsc();
+	// 	hit[i] = (int)(end - start);
+	// 	start = rdtsc();
+	// 	branch2(0); //hit
+	// 	end = rdtsc();
+	// 	noise1[i] = (int)(end - start);
+	// 	// printf("Time (Nano): %lld\n", hit[i]);
+	// }
+
+	// for (int i = 0; i < testsize; i++){
+	// 	func(1, 0);
+
+	// 	start = rdtsc();
+	// 	branch1(0); //miss
+	// 	end = rdtsc();
+	// 	miss[i] = (int)(end - start);
+	// 	start = rdtsc();
+	// 	branch2(1); //miss
+	// 	end = rdtsc();
+	// 	noise2[i] = (int)(end - start);
+	// 	// printf("Time (Nano): %lld\n", hit[i]);
+	// }
+
+    // FILE *fp = fopen("conjuring.txt", "w");
+	// for (int i = 0; i < testsize; i++){
+	// 	fprintf(fp, "%d,%d,%d,%d\n", hit[i], noise1[i], miss[i], noise2[i]);
+	// }
+	// fclose(fp);
 	return 0;
 }
 

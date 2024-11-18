@@ -130,6 +130,7 @@ int main(){
 	uint64_t start, end;
 	int testsize = 10000;
     int *hittest = (int *)malloc(sizeof(int) * testsize);
+    int *misstest = (int *)malloc(sizeof(int) * testsize);
     int *hit = (int *)malloc(sizeof(int) * testsize);
     int *miss = (int *)malloc(sizeof(int) * testsize);
     int *noise1 = (int *)malloc(sizeof(int) * testsize);
@@ -159,9 +160,16 @@ int main(){
 	for (int i = 0; i < testsize; i++){
 		branch0(1);
 		start = rdtsc();
-		branch1(1); //hit
+		branch0(1); //hit
 		end = rdtsc();
 		hittest[i] = (int)(end - start);
+	}
+	for (int i = 0; i < testsize; i++){
+		branch0(1);
+		start = rdtsc();
+		branch0(0); //miss
+		end = rdtsc();
+		misstest[i] = (int)(end - start);
 	}
 	FILE *fp = fopen("attack.txt", "w");
 	for (int i = 0; i < testsize; i++){

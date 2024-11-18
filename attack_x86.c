@@ -49,13 +49,14 @@ void func(int c1, int c2){
         // 첫 번째 if (c1)
         "mov %[c1], %%eax \n\t"     // c1 값을 eax에 로드
         "cmp $0, %%eax \n\t"        // eax와 0 비교
-		".p2align 16, 0x90 \n\t"     // 16바이트 경계로 정렬
+		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
+		"nop;nop;nop;nop;nop;nop;nop;nop; \n\t" // length of mfence;rdtsc;mfence;
         "je skip_if1 \n\t"          // c1이 0이면 첫 번째 if문 스킵
 
         // 두 번째 if (c2)
         "mov %[c2], %%ebx \n\t"     // c2 값을 ebx에 로드
         "cmp $0, %%ebx \n\t"        // ebx와 0 비교
-		".p2align 16, 0x90 \n\t"     // 16바이트 경계로 정렬
+		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
 		"nop;nop;nop;nop;nop;nop;nop; \n\t"
         "je skip_if2 \n\t"          // c2가 0이면 두 번째 if문 스킵
 
@@ -72,87 +73,53 @@ void func(int c1, int c2){
     );
 }
 
-void branch0(int c1){
-	int dummy = 0;
-	asm volatile (
-        // 첫 번째 if (c1)
-        "mov %[c1], %%eax \n\t"     // c1 값을 eax에 로드
-        "cmp $0, %%eax \n\t"        // eax와 0 비교
-		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
-        "je att_if \n\t"          // c1이 0이면 첫 번째 if문 스킵
-
-        "mov $10000, %%rcx \n\t" 
-		"3: \n\t"
-		"add $1, %[dummy] \n\t"
-		"sub $1, %%rcx \n\t"
-		"jnz 3b \n\t"
-
-        "att_if: \n\t"            // 두 번째 if문 종료
-
-        : [dummy] "+r" (dummy)
-		: [c1] "r" (c1)			// 입력
-        : "eax"             		// 변경된 레지스터
-    );
+int branch_one(unsigned int value){ // (1:Taken, 0:Not-taken)
+    uint64_t start, end, d;
+    asm volatile(
+        "cmp $0x1, %%rcx;"
+        ".p2align 20, 0x90;"
+        "mfence;"
+        "rdtsc;"
+        "mfence;"
+        "je label0;"
+        "label0:"
+        "nop;"
+        :"=a"(start), "=d"(d):"c"(value));
+    end = rdtsc();
+    start = (d << 32) | start;
+    return (int)(end - start);
 }
 
-void branch1(int c1){
-	int dummy = 0;
-	asm volatile (
-        // 첫 번째 if (c1)
-        "mov %[c1], %%eax \n\t"     // c1 값을 eax에 로드
-        "cmp $0, %%eax \n\t"        // eax와 0 비교
-		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
-        "je att_if1 \n\t"          // c1이 0이면 첫 번째 if문 스킵
-
-        "mov $10000, %%rcx \n\t" 
-		"1: \n\t"
-		"add $1, %[dummy] \n\t"
-		"sub $1, %%rcx \n\t"
-		"jnz 1b \n\t"
-
-        "att_if1: \n\t"            // 두 번째 if문 종료
-
-        : [dummy] "+r" (dummy)
-		: [c1] "r" (c1)			// 입력
-        : "eax"             		// 변경된 레지스터
-    );
+int branch_two(unsigned int value){ // (1:Taken, 0:Not-taken)
+    uint64_t start, end, d;
+    asm volatile(
+        "cmp $0x1, %%rcx;"
+        ".p2align 20, 0x90;"
+        "mfence;"	// 3 bytes
+        "rdtsc;"	// 2 bytes
+        "mfence;"	// 3 bytes
+        "je label1;"
+        "label1:"
+        "nop;"
+        :"=a"(start), "=d"(d):"c"(value));
+    end = rdtsc();
+    start = (d << 32) | start;
+    return (int)(end - start);
 }
 
-void branch2(int c2){
-	int dummy = 0;
-	asm volatile (
-        // 두 번째 if (c2)
-        "mov %[c2], %%eax \n\t"     // c1 값을 eax에 로드
-        "cmp $0, %%eax \n\t"        // eax와 0 비교
-		".p2align 20, 0x90 \n\t"     // 16바이트 경계로 정렬
-		"nop;nop;nop;nop;nop;nop;nop; \n\t"
-        "je att_if2 \n\t"          // c1이 0이면 첫 번째 if문 스킵
-
-        "mov $10000, %%rcx \n\t" 
-		"2: \n\t"
-		"add $1, %[dummy] \n\t"
-		"sub $1, %%rcx \n\t"
-		"jnz 2b \n\t"
-
-        "att_if2: \n\t"            // 두 번째 if문 종료
-
-        : [dummy] "+r" (dummy)
-		: [c2] "r" (c2)			
-        : "eax"             		// 변경된 레지스터
-    );
-}
 
 int size = 1;
 
 int main(){
 	uint64_t start, end;
 	int testsize = 10000;
-    int *hittest = (int *)malloc(sizeof(int) * testsize);
-    int *misstest = (int *)malloc(sizeof(int) * testsize);
+    int *test1 = (int *)malloc(sizeof(int) * testsize);
+    int *test2 = (int *)malloc(sizeof(int) * testsize);
+    int *test3 = (int *)malloc(sizeof(int) * testsize);
+    int *test4 = (int *)malloc(sizeof(int) * testsize);
+
     int *hit = (int *)malloc(sizeof(int) * testsize);
     int *miss = (int *)malloc(sizeof(int) * testsize);
-    int *noise1 = (int *)malloc(sizeof(int) * testsize);
-    int *noise2 = (int *)malloc(sizeof(int) * testsize);
 
 	// for (int i = 0; i < testsize; i++){
 	// 	flush(&size);
@@ -176,22 +143,22 @@ int main(){
 	// printf("miss: %lf (%lf)\n", calculateMean(miss, testsize), calculateStandardDeviation(miss, testsize));
 
 	for (int i = 0; i < testsize; i++){
-		branch0(1);
-		start = rdtsc();
-		branch0(1); //hit
-		end = rdtsc();
-		hittest[i] = (int)(end - start);
+		func(1, 1);
+		int latency1 = branch_one(1); //hit
+		int latency2 = branch_two(1); //hit
+		test1[i] = latency1;
+		test2[i] = latency2;
 	}
 	for (int i = 0; i < testsize; i++){
-		branch0(1);
-		start = rdtsc();
-		branch0(0); //miss
-		end = rdtsc();
-		misstest[i] = (int)(end - start);
+		func(1, 0);
+		int latency1 = branch_one(0); //miss
+		int latency2 = branch_two(1); //miss
+		test3[i] = latency1;
+		test4[i] = latency2;
 	}
 	FILE *fp = fopen("attack.txt", "w");
 	for (int i = 0; i < testsize; i++){
-		fprintf(fp, "%d,%d\n", hittest[i], misstest[i]);
+		fprintf(fp, "%d,%d,%d,%d\n", test1[i], test2[i], test3[i], test4[i]);
 	}
 	fclose(fp);
 

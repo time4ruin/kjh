@@ -98,15 +98,11 @@ int branch_one(unsigned int value){ // (1:Taken, 0:Not-taken)
         "mfence;"	// 3 bytes
 
         "je label1;" // branch
-        ".rept 10000;"
         "nop;"
-        ".endr;"
 		"jmp end1;"
 
         "label1:"
-        ".rept 10000;"
         "nop;"
-        ".endr;"
 
 		"end1:"
         "nop;"
@@ -170,8 +166,8 @@ int main(){
 		// test2[i] = latency2;
 	}
 	for (int i = 0; i < testsize; i++){
-		branch_one(1);
-		int latency1 = branch_one(0); //miss
+		branch_one(0);
+		int latency1 = branch_one(1); //miss
 		// int latency2 = branch_two(1); //miss
 		test3[i] = latency1;
 		// test4[i] = latency2;

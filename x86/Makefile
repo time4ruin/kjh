@@ -19,8 +19,5 @@ attack_x86: attack_x86.c
 conjuring_x86: conjuring_x86.c
 	gcc -no-pie conjuring_x86.c -o test.bin -lm
 
-conjuring_aarch64: conjuring_aarch64.c
-	aarch64-linux-gnu-gcc -march=armv8-a conjuring_aarch64.c -o test.bin -static -lm
-
 clean:
 	rm -f test.bin attack.bin

@@ -10035,148 +10035,217 @@ LBB0_3:
 _main:                                  ; @main
 	.cfi_startproc
 ; %bb.0:
-	sub	sp, sp, #144
-	stp	x29, x30, [sp, #128]            ; 16-byte Folded Spill
-	add	x29, sp, #128
+	sub	sp, sp, #128
+	stp	x29, x30, [sp, #112]            ; 16-byte Folded Spill
+	add	x29, sp, #112
 	.cfi_def_cfa w29, 16
 	.cfi_offset w30, -8
 	.cfi_offset w29, -16
 	stur	wzr, [x29, #-4]
-	mov	w8, #1000                       ; =0x3e8
-	stur	w8, [x29, #-8]
-	ldursw	x9, [x29, #-8]
+	sub	x3, x29, #8
+	stur	wzr, [x29, #-8]
+	adrp	x0, l_.str@PAGE
+	add	x0, x0, l_.str@PAGEOFF
+	mov	x2, #0                          ; =0x0
+	mov	x1, x2
+	mov	x4, #4                          ; =0x4
+	bl	_sysctlbyname
+	stur	w0, [x29, #-12]
+	ldur	w8, [x29, #-12]
+	adds	w8, w8, #1
+	cset	w8, ne
+	tbnz	w8, #0, LBB1_2
+	b	LBB1_1
+LBB1_1:
+	adrp	x0, l_.str.1@PAGE
+	add	x0, x0, l_.str.1@PAGEOFF
+	bl	_printf
+	mov	w8, #1                          ; =0x1
+	stur	w8, [x29, #-4]
+	b	LBB1_15
+LBB1_2:
+	mov	w8, #10                         ; =0xa
+	stur	w8, [x29, #-16]
+	ldursw	x9, [x29, #-16]
 	mov	x8, #8                          ; =0x8
 	str	x8, [sp, #32]                   ; 8-byte Folded Spill
 	mul	x0, x8, x9
 	bl	_malloc
 	ldr	x8, [sp, #32]                   ; 8-byte Folded Reload
-	stur	x0, [x29, #-16]
-	ldursw	x9, [x29, #-8]
+	stur	x0, [x29, #-24]
+	ldursw	x9, [x29, #-16]
 	mul	x0, x8, x9
 	bl	_malloc
-	stur	x0, [x29, #-24]
-	stur	wzr, [x29, #-28]
-	b	LBB1_1
-LBB1_1:                                 ; =>This Inner Loop Header: Depth=1
-	ldur	w8, [x29, #-28]
-	ldur	w9, [x29, #-8]
+	stur	x0, [x29, #-32]
+	stur	xzr, [x29, #-40]
+	stur	xzr, [x29, #-48]
+	stur	wzr, [x29, #-52]
+	b	LBB1_3
+LBB1_3:                                 ; =>This Inner Loop Header: Depth=1
+	ldur	w8, [x29, #-52]
+	ldur	w9, [x29, #-16]
 	subs	w8, w8, w9
 	cset	w8, ge
-	tbnz	w8, #0, LBB1_4
-	b	LBB1_2
-LBB1_2:                                 ;   in Loop: Header=BB1_1 Depth=1
-	mov	w0, #1                          ; =0x1
+	tbnz	w8, #0, LBB1_6
+	b	LBB1_4
+LBB1_4:                                 ;   in Loop: Header=BB1_3 Depth=1
+	mov	w0, #0                          ; =0x0
 	str	w0, [sp, #24]                   ; 4-byte Folded Spill
 	bl	_func
-	mov	w0, #8                          ; =0x8
-	str	w0, [sp, #28]                   ; 4-byte Folded Spill
-	bl	_clock_gettime_nsec_np
-	mov	x8, x0
 	ldr	w0, [sp, #24]                   ; 4-byte Folded Reload
-	stur	x8, [x29, #-40]
+	bl	_func
+	ldr	w0, [sp, #24]                   ; 4-byte Folded Reload
+	bl	_func
+	ldr	w0, [sp, #24]                   ; 4-byte Folded Reload
+	bl	_func
+	ldr	w0, [sp, #24]                   ; 4-byte Folded Reload
+	bl	_func
+	ldr	w0, [sp, #24]                   ; 4-byte Folded Reload
+	bl	_func
+	mov	w0, #1                          ; =0x1
+	str	w0, [sp, #28]                   ; 4-byte Folded Spill
 	bl	_func
 	ldr	w0, [sp, #28]                   ; 4-byte Folded Reload
-	bl	_clock_gettime_nsec_np
-	stur	x0, [x29, #-48]
+	; InlineAsm Start
+	mrs	x8, S3_2_C15_C0_0
+	; InlineAsm End
+	stur	x8, [x29, #-40]
+	bl	_func
+	; InlineAsm Start
+	mrs	x8, S3_2_C15_C0_0
+	; InlineAsm End
+	stur	x8, [x29, #-48]
 	ldur	x8, [x29, #-48]
 	ldur	x9, [x29, #-40]
-	subs	x8, x8, x9
-	ldur	x9, [x29, #-16]
-	ldursw	x10, [x29, #-28]
-	str	x8, [x9, x10, lsl #3]
-	b	LBB1_3
-LBB1_3:                                 ;   in Loop: Header=BB1_1 Depth=1
-	ldur	w8, [x29, #-28]
-	add	w8, w8, #1
-	stur	w8, [x29, #-28]
-	b	LBB1_1
-LBB1_4:
-	stur	wzr, [x29, #-52]
-	b	LBB1_5
-LBB1_5:                                 ; =>This Inner Loop Header: Depth=1
-	ldur	w8, [x29, #-52]
-	ldur	w9, [x29, #-8]
-	subs	w8, w8, w9
-	cset	w8, ge
-	tbnz	w8, #0, LBB1_8
-	b	LBB1_6
-LBB1_6:                                 ;   in Loop: Header=BB1_5 Depth=1
-	mov	w0, #0                          ; =0x0
-	bl	_func
-	mov	w0, #8                          ; =0x8
-	str	w0, [sp, #20]                   ; 4-byte Folded Spill
-	bl	_clock_gettime_nsec_np
-	str	x0, [sp, #64]
-	mov	w0, #1                          ; =0x1
-	bl	_func
-	ldr	w0, [sp, #20]                   ; 4-byte Folded Reload
-	bl	_clock_gettime_nsec_np
-	str	x0, [sp, #56]
-	ldr	x8, [sp, #56]
-	ldr	x9, [sp, #64]
 	subs	x8, x8, x9
 	ldur	x9, [x29, #-24]
 	ldursw	x10, [x29, #-52]
 	str	x8, [x9, x10, lsl #3]
-	b	LBB1_7
-LBB1_7:                                 ;   in Loop: Header=BB1_5 Depth=1
+	ldur	x8, [x29, #-24]
+	ldursw	x9, [x29, #-52]
+	ldr	x8, [x8, x9, lsl #3]
+	mov	x9, sp
+	str	x8, [x9]
+	adrp	x0, l_.str.2@PAGE
+	add	x0, x0, l_.str.2@PAGEOFF
+	bl	_printf
+	b	LBB1_5
+LBB1_5:                                 ;   in Loop: Header=BB1_3 Depth=1
 	ldur	w8, [x29, #-52]
 	add	w8, w8, #1
 	stur	w8, [x29, #-52]
-	b	LBB1_5
-LBB1_8:
-	adrp	x0, l_.str@PAGE
-	add	x0, x0, l_.str@PAGEOFF
-	adrp	x1, l_.str.1@PAGE
-	add	x1, x1, l_.str.1@PAGEOFF
+	b	LBB1_3
+LBB1_6:
+	str	wzr, [sp, #56]
+	b	LBB1_7
+LBB1_7:                                 ; =>This Inner Loop Header: Depth=1
+	ldr	w8, [sp, #56]
+	ldur	w9, [x29, #-16]
+	subs	w8, w8, w9
+	cset	w8, ge
+	tbnz	w8, #0, LBB1_10
+	b	LBB1_8
+LBB1_8:                                 ;   in Loop: Header=BB1_7 Depth=1
+	mov	w0, #0                          ; =0x0
+	bl	_func
+	; InlineAsm Start
+	mrs	x8, S3_2_C15_C0_0
+	; InlineAsm End
+	stur	x8, [x29, #-40]
+	mov	w0, #1                          ; =0x1
+	bl	_func
+	; InlineAsm Start
+	mrs	x8, S3_2_C15_C0_0
+	; InlineAsm End
+	stur	x8, [x29, #-48]
+	ldur	x8, [x29, #-48]
+	ldur	x9, [x29, #-40]
+	subs	x8, x8, x9
+	ldur	x9, [x29, #-32]
+	ldrsw	x10, [sp, #56]
+	str	x8, [x9, x10, lsl #3]
+	ldur	x8, [x29, #-32]
+	ldrsw	x9, [sp, #56]
+	ldr	x8, [x8, x9, lsl #3]
+	mov	x9, sp
+	str	x8, [x9]
+	adrp	x0, l_.str.3@PAGE
+	add	x0, x0, l_.str.3@PAGEOFF
+	bl	_printf
+	b	LBB1_9
+LBB1_9:                                 ;   in Loop: Header=BB1_7 Depth=1
+	ldr	w8, [sp, #56]
+	add	w8, w8, #1
+	str	w8, [sp, #56]
+	b	LBB1_7
+LBB1_10:
+	adrp	x0, l_.str.4@PAGE
+	add	x0, x0, l_.str.4@PAGEOFF
+	adrp	x1, l_.str.5@PAGE
+	add	x1, x1, l_.str.5@PAGEOFF
 	bl	_fopen
 	str	x0, [sp, #48]
 	str	wzr, [sp, #44]
-	b	LBB1_9
-LBB1_9:                                 ; =>This Inner Loop Header: Depth=1
+	b	LBB1_11
+LBB1_11:                                ; =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #44]
-	ldur	w9, [x29, #-8]
+	ldur	w9, [x29, #-16]
 	subs	w8, w8, w9
 	cset	w8, ge
-	tbnz	w8, #0, LBB1_12
-	b	LBB1_10
-LBB1_10:                                ;   in Loop: Header=BB1_9 Depth=1
+	tbnz	w8, #0, LBB1_14
+	b	LBB1_12
+LBB1_12:                                ;   in Loop: Header=BB1_11 Depth=1
 	ldr	x0, [sp, #48]
-	ldur	x8, [x29, #-16]
+	ldur	x8, [x29, #-24]
 	ldrsw	x9, [sp, #44]
 	ldr	x10, [x8, x9, lsl #3]
-	ldur	x8, [x29, #-24]
+	ldur	x8, [x29, #-32]
 	ldrsw	x9, [sp, #44]
 	ldr	x8, [x8, x9, lsl #3]
 	mov	x9, sp
 	str	x10, [x9]
 	str	x8, [x9, #8]
-	adrp	x1, l_.str.2@PAGE
-	add	x1, x1, l_.str.2@PAGEOFF
+	adrp	x1, l_.str.6@PAGE
+	add	x1, x1, l_.str.6@PAGEOFF
 	bl	_fprintf
-	b	LBB1_11
-LBB1_11:                                ;   in Loop: Header=BB1_9 Depth=1
+	b	LBB1_13
+LBB1_13:                                ;   in Loop: Header=BB1_11 Depth=1
 	ldr	w8, [sp, #44]
 	add	w8, w8, #1
 	str	w8, [sp, #44]
-	b	LBB1_9
-LBB1_12:
+	b	LBB1_11
+LBB1_14:
 	ldr	x0, [sp, #48]
 	bl	_fclose
-	mov	w0, #0                          ; =0x0
-	ldp	x29, x30, [sp, #128]            ; 16-byte Folded Reload
-	add	sp, sp, #144
+	stur	wzr, [x29, #-4]
+	b	LBB1_15
+LBB1_15:
+	ldur	w0, [x29, #-4]
+	ldp	x29, x30, [sp, #112]            ; 16-byte Folded Reload
+	add	sp, sp, #128
 	ret
 	.cfi_endproc
                                         ; -- End function
 	.section	__TEXT,__cstring,cstring_literals
 l_.str:                                 ; @.str
-	.asciz	"conjuring.txt"
+	.asciz	"kern.sched_thread_bind_cpu"
 
 l_.str.1:                               ; @.str.1
-	.asciz	"w"
+	.asciz	"Error setting CPU core affinity. Please run as root\n"
 
 l_.str.2:                               ; @.str.2
+	.asciz	"[HIT]  Time (ns): %llu\n"
+
+l_.str.3:                               ; @.str.3
+	.asciz	"[MISS] Time (ns): %llu\n"
+
+l_.str.4:                               ; @.str.4
+	.asciz	"conjuring.txt"
+
+l_.str.5:                               ; @.str.5
+	.asciz	"w"
+
+l_.str.6:                               ; @.str.6
 	.asciz	"%llu,%llu\n"
 
 .subsections_via_symbols

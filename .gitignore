@@ -1,1 +1,9 @@
-*.out
+apple/*.bin
+apple/*.txt
+arm/*.bin
+arm/*.txt
+x86/*.bin
+x86/*.txt
+.vscode/
+.DS_Store
+*.kc.development

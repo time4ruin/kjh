@@ -9,25 +9,25 @@ single:
 	lldb --batch -o "disassemble --name func1 --count 40" ./p1.bin | grep -E 'b[[:space:]]+0x'
 	lldb --batch -o "disassemble --name func1 --count 40" ./p2.bin | grep -E 'b[[:space:]]+0x'
 
-single_mrs:
+single_mrs: p1_mrs.c p2_mrs.c
 	clang -O0 p1_mrs.c -o p1.bin
 	clang -O0 p2_mrs.c -o p2.bin
 	lldb --batch -o "disassemble --name func1 --count 40" ./p1.bin | grep -E 'b[[:space:]]+0x'
 	lldb --batch -o "disassemble --name func1 --count 40" ./p2.bin | grep -E 'b[[:space:]]+0x'
 
-afin:
+afin: affinity_test.c
 	clang -O0 affinity_test.c -o test.bin
 
-fork:
+fork: fork.c
 	clang -O0 fork.c -o test.bin
 
-fork_different:
+fork_different: fork_differentbranch.c
 	clang -O0 fork_differentbranch.c -o test.bin
 
-fork_nested:
+fork_nested: fork_nested.c
 	clang -O0 fork_nested.c -o test.bin
 	
-fork_nested_onlyb1:
+fork_nested_onlyb1: fork_nested_onlyb1.c
 	clang -O0 fork_nested_onlyb1.c -o test.bin
 
 clean:

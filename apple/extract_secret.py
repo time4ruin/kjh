@@ -31,33 +31,39 @@ def process_files_with_overlap_and_count(time_file, data_file, threshold=2.0):
             print("Not enough overlapping time intervals between the two files.")
             return
 
-        # 슬라이딩 윈도우 기반 이상치
-        anomaly_times = []
+        # 개선
+        anomaly_counts = [0] * (len(relevant_times) - 1)
+        total_counts = [0] * (len(relevant_times) - 1)
+        transition_info = []
+
+        rt_index = 0  # relevant_times 포인터
+
         for i in range(1, len(data_entries) - 1):
             t1, v1 = data_entries[i - 1]
             t2, v2 = data_entries[i]
             t3, v3 = data_entries[i + 1]
+
+            # 현재 t2가 속한 구간을 찾기 위해 rt_index를 증가
+            while rt_index < len(relevant_times) - 1 and t2 >= relevant_times[rt_index + 1]:
+                rt_index += 1
+
+            if rt_index >= len(relevant_times) - 1:
+                break  # 더 이상 검사할 구간 없음
+
+            # 이상치 여부 판단
             neighbor_avg = (v1 + v3) / 2
-            if v2 > neighbor_avg * threshold:
-                anomaly_times.append(t2)        
+            is_anomaly = v2 > neighbor_avg * threshold
 
-        # 구간별로 t1 기준 value, 이상치 개수/전체 개수 기록 + O/X 판별
-        transition_info = []
+            total_counts[rt_index] += 1
+            if is_anomaly:
+                anomaly_counts[rt_index] += 1
+
+        # 결과 구성
         for i in range(len(relevant_times) - 1):
-            t1 = times[i]
-            t2 = times[i + 1]
-            # value_at_t1 = times[i][1]
-
-            # b1 이상치 개수 & 전체 측정 개수
-            b1_anomalies = [t for t in anomaly_times if t1 <= t < t2]
-            b1_total = [t for t, _ in data_entries if t1 <= t < t2]
-
-            b1c = len(b1_anomalies)
-            b1t = len(b1_total)
-
-            transition_info.append((
-                t1, b1c, b1t
-            ))
+            t_start = relevant_times[i]
+            b1c = anomaly_counts[i]
+            b1t = total_counts[i]
+            transition_info.append((t_start, b1c, b1t))
 
         # Large values 총 개수
         total = 0
@@ -79,11 +85,12 @@ def process_files_with_overlap_and_count(time_file, data_file, threshold=2.0):
                     b1c_count['2+'] += 1
 
         # 통계 요약 출력
-        print("\n=== Summary ===")
-        print(f"Total     : {hit}/{total}")
-        print(f"b1c = 0   : {b1c_count[0]}")
-        print(f"b1c = 1   : {b1c_count[1]}")
-        print(f"b1c >= 2  : {b1c_count['2+']}")
+        print("\n======== Summary ========")
+        print(f"Total               : {hit}/{total}")
+        print(f"misprediction = 0   : {b1c_count[0]}")
+        print(f"misprediction = 1   : {b1c_count[1]}")
+        print(f"misprediction >= 2  : {b1c_count['2+']}")
+        print(f"ratio               : {hit / total * 100:.2f}")
 
     except Exception as e:
         print(f"Error: {e}")

@@ -84,6 +84,7 @@ int main() {
     } 
     else if (pid == 0) {
         // Child = Victim
+        CORE_ID = 0;
         volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
         if (ret == -1)
         {

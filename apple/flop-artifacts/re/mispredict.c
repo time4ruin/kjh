@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     // Set CPU affinity using KDK interface.
-    uint32_t CORE_ID = 5;
+    uint32_t CORE_ID = 3;
     volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
     if (ret == -1)
     {

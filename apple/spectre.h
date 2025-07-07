@@ -16,5 +16,7 @@
 // amount of values in array2
 #define VALUES (1 << BITS)
 
+#define THRESHOLD 100
+
 // memory load
 #define memory_access(x) __asm__ volatile("LDR x10, [%[addr]]" :: [addr] "r" (x) : "x10", "memory")

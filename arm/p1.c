@@ -40,7 +40,7 @@ int main(){
 		usleep(100);
 		int input = rand() % 2;
 
-		func1(1);
+		// func1(1);
 		
 		clock_gettime(CLOCK_REALTIME, &ts);
 		long long nanoseconds = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;

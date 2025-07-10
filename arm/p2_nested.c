@@ -10,7 +10,12 @@ int input1, input2;
 int branch1(){
 	struct timespec begin, end;
 	clock_gettime(CLOCK_MONOTONIC, &begin);
-	if (input1){ // 0x400910
+	__asm__ __volatile__(
+	".rept 2\n\t"
+	"nop\n\t"
+	".endr\n\t"
+	:::);
+	if (input1){ // 0x400918
 		__asm__ __volatile__(
         ".rept 10000\n\t"
         "nop\n\t"
@@ -32,7 +37,7 @@ int branch1(){
 int branch2(){
 	struct timespec begin, end;
 	clock_gettime(CLOCK_MONOTONIC, &begin);
-	if (input2){ // 0x41423c
+	if (input2){ // 0x414244
 		__asm__ __volatile__(
         ".rept 10000\n\t"
         "nop\n\t"

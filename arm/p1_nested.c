@@ -8,19 +8,20 @@
 int input1, input2;
 
 void func1(){
+	usleep(2000);
 	__asm__ __volatile__(
 	".rept 9\n\t"
 	"nop\n\t"
 	".endr\n\t"
 	:::);
-	if (input1){ // 0x400910
-		usleep(10);
+	if (input1){ // 0x400918
+		usleep(2000);
 		__asm__ __volatile__(
         ".rept 20036\n\t"
         "nop\n\t"
         ".endr\n\t"
         :::);
-		if (input2){ // 0x41423c
+		if (input2){ // 0x414244
 			__asm__ __volatile__(
 			".rept 10000\n\t"
 			"nop\n\t"

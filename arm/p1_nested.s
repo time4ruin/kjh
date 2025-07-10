@@ -197,8 +197,10 @@ func1:
 	.cfi_offset 29, -16
 	.cfi_offset 30, -8
 	mov	x29, sp
+	mov	w0, 2000
+	bl	usleep
 #APP
-// 11 "p1_nested.c" 1
+// 12 "p1_nested.c" 1
 	.rept 9
 	nop
 	.endr
@@ -210,10 +212,10 @@ func1:
 	ldr	w0, [x0]
 	cmp	w0, 0
 	beq	.L12
-	mov	w0, 10
+	mov	w0, 2000
 	bl	usleep
 #APP
-// 18 "p1_nested.c" 1
+// 19 "p1_nested.c" 1
 	.rept 20036
 	nop
 	.endr
@@ -226,7 +228,7 @@ func1:
 	cmp	w0, 0
 	beq	.L13
 #APP
-// 24 "p1_nested.c" 1
+// 25 "p1_nested.c" 1
 	.rept 10000
 	nop
 	.endr
@@ -236,7 +238,7 @@ func1:
 	b	.L15
 .L13:
 #APP
-// 31 "p1_nested.c" 1
+// 32 "p1_nested.c" 1
 	.rept 10000
 	nop
 	.endr
@@ -246,7 +248,7 @@ func1:
 	b	.L15
 .L12:
 #APP
-// 39 "p1_nested.c" 1
+// 40 "p1_nested.c" 1
 	.rept 10000
 	nop
 	.endr

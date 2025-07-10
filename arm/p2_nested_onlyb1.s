@@ -206,13 +206,21 @@ branch1:
 	mov	x1, x0
 	mov	w0, 1
 	bl	clock_gettime
+#APP
+// 13 "p2_nested_onlyb1.c" 1
+	.rept 2
+	nop
+	.endr
+	
+// 0 "" 2
+#NO_APP
 	adrp	x0, input1
 	add	x0, x0, :lo12:input1
 	ldr	w0, [x0]
 	cmp	w0, 0
 	beq	.L12
 #APP
-// 14 "p2_nested_onlyb1.c" 1
+// 19 "p2_nested_onlyb1.c" 1
 	.rept 10000
 	nop
 	.endr
@@ -222,7 +230,7 @@ branch1:
 	b	.L13
 .L12:
 #APP
-// 21 "p2_nested_onlyb1.c" 1
+// 26 "p2_nested_onlyb1.c" 1
 	.rept 9999
 	nop
 	.endr
@@ -342,14 +350,14 @@ main:
 	add	x0, x0, :lo12:input1
 	str	wzr, [x0]
 #APP
-// 51 "p2_nested_onlyb1.c" 1
+// 56 "p2_nested_onlyb1.c" 1
 	dmb sy
 // 0 "" 2
 #NO_APP
 	bl	branch1
 	str	w0, [sp, 20]
 #APP
-// 53 "p2_nested_onlyb1.c" 1
+// 58 "p2_nested_onlyb1.c" 1
 	dmb sy
 // 0 "" 2
 #NO_APP

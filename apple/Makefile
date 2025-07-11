@@ -30,6 +30,12 @@ fork_nested: fork_nested.c
 fork_nested_onlyb1: fork_nested_onlyb1.c
 	clang -O0 fork_nested_onlyb1.c -o test.bin
 
+fork_nobranch: fork_nobranch.c
+	clang -O0 fork_nobranch.c -o test.bin
+	
+fork_nobranch_clock: fork_nobranch_clock.c
+	clang -O0 fork_nobranch_clock.c -o test.bin
+
 spectre: spectre.c
 	clang -O0 spectre.c -o test.bin
 

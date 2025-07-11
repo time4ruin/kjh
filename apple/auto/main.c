@@ -98,7 +98,7 @@ int check_conjuring(){
 }
 
 int main() {
-    uint32_t CORE_ID = 0;
+    uint32_t CORE_ID = 3;
     volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
     if (ret == -1)
     {
@@ -147,12 +147,6 @@ int main() {
     } 
     else {
         // Parent = Attacker
-        volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
-        if (ret == -1)
-        {
-            printf("Error setting CPU core affinity. Please run as root\n");
-            return EXIT_FAILURE;
-        }
         attacker();
     }
 

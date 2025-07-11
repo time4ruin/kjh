@@ -9,7 +9,7 @@
 #include "common.h"
 
 void attacker(){
-    uint64_t (*lines)[3] = malloc(sizeof(uint64_t[MAX_LINES][3]));
+    uint64_t (*lines)[4] = malloc(sizeof(uint64_t[MAX_LINES][4]));
     if (!lines) {
         perror("malloc failed");
         return;
@@ -20,9 +20,42 @@ void attacker(){
 
     FILE *fp = fopen("p2.txt", "w");
     printf("[Attacker] address of f1: %p\n", f1);
-    
+
+    // /* branch branch branch */
+    // char (*lines2)[MAX_LINE_LENGTH] = malloc(sizeof(char[MAX_LINES][MAX_LINE_LENGTH]));
+    // int testsec = 15;
+    // uint64_t start, now, latency;
+    // asm volatile("mrs %[start], S3_2_c15_c0_0" : [start]"=r"(start));
+    // uint64_t previous = start;
+    // while(1) {		
+    //     asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
+    //     asm volatile("dsb sy" ::: "memory");
+    //     f1(0); // not-taken
+    //     asm volatile("dsb sy" ::: "memory");
+    //     asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+    //     latency = t2 - t1;
+
+    //     asm volatile("mrs %[now], S3_2_c15_c0_0" : [now]"=r"(now));
+    //     // fprintf(fp, "%llu, %llu, %llu, %llu\n", t1, t2, t2 - t1, now - previous);
+    //     snprintf(lines2[n++], MAX_LINE_LENGTH, "%llu, %llu, %llu, %llu\n", t1, t2, t2 - t1, now - previous);
+    //     previous = now;
+    //     if ((now - start) >= (uint64_t)testsec * 1000000000ULL) {
+    //         break;
+    //     }
+    // }
+    // for (int i = 0; i < MAX_LINES; ++i) {
+    //     fputs(lines2[i], fp);
+    // }
+    // /* branch branch branch */
+
+    /* branchless */
     uint64_t counter = 0;
     uint64_t limit = 2000000;
+    uint64_t previous;
+    asm volatile("dsb ish");
+    asm volatile("isb");
+    asm volatile("mrs %[previous], S3_2_c15_c0_0" : [previous]"=r"(previous));
+    asm volatile("isb");
 
     // 종료 조건이 명시적 branch 없이 평가되도록 만듦
     while (1) {
@@ -39,7 +72,9 @@ void attacker(){
         lines[n][0] = t1;
         lines[n][1] = t2;
         lines[n][2] = t2 - t1;
+        lines[n][3] = t2 - previous;
         n++;
+        previous = t2;
 
         // 탈출 처리
         uint64_t diff = counter - limit;
@@ -58,8 +93,10 @@ break_loop:
     printf("Loop ended at counter = %llu\n", counter);
 
     for (int i = 0; i < n; ++i) {
-        fprintf(fp, "%llu, %llu, %llu\n", lines[i][0], lines[i][1], lines[i][2]);
+        fprintf(fp, "%llu, %llu, %llu, %llu\n", lines[i][0], lines[i][1], lines[i][2], lines[i][3]);
     }
+    /* branchless */
+
     fclose(fp);
     free(lines);
     printf("Attacker(Parent) End\n");

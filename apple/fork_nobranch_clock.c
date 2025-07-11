@@ -67,21 +67,17 @@ int check_conjuring(){
 
     for (int i = 0; i < testsize; i++) {
         f1(0);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
+        t1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
         f1(0); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+        t2 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
         hit[i] = t2 - t1;
         printf("[HIT]  Time (ns): %llu\n", hit[i]);
     }
     for (int i = 0; i < testsize; i++) {
         f1(1);
-        asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-        asm volatile("dsb sy" ::: "memory");
+        t1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
         f1(0); // not-taken
-        asm volatile("dsb sy" ::: "memory");
-        asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+        t2 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
         miss[i] = t2 - t1;
         printf("[MISS] Time (ns): %llu\n", miss[i]);
     }
@@ -104,23 +100,17 @@ int main() {
     check_conjuring();
     // Test Delay
     uint64_t t1, t2;
-    asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-    asm volatile("dsb sy" ::: "memory");
+    t1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
     usleep(10);
-    asm volatile("dsb sy" ::: "memory");
-    asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+    t2 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
     printf("Delay Time (usleep(10)) : %llu\n", t2 - t1);
-    asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-    asm volatile("dsb sy" ::: "memory");
+    t1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
     delay(100000);
-    asm volatile("dsb sy" ::: "memory");
-    asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+    t2 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
     printf("Delay Time (delay10K): %llu\n", t2 - t1);
-    asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-    asm volatile("dsb sy" ::: "memory");
+    t1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
     delay(1000000);
-    asm volatile("dsb sy" ::: "memory");
-    asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
+    t2 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
     printf("Delay Time (delay1M): %llu\n", t2 - t1);
     
     pid_t pid = fork();
@@ -131,7 +121,7 @@ int main() {
     } 
     else if (pid == 0) {
         // Child = Victim
-        // CORE_ID = 0;
+        
         volatile uint32_t ret = sysctlbyname("kern.sched_thread_bind_cpu", NULL, NULL, &CORE_ID, sizeof(uint32_t));
         if (ret == -1)
         {
@@ -139,7 +129,8 @@ int main() {
             return EXIT_FAILURE;
         }
 
-        char (*lines)[MAX_LINE_LENGTH] = malloc(sizeof(char[MAX_LINES][MAX_LINE_LENGTH]));
+        // char (*lines)[MAX_LINE_LENGTH] = malloc(sizeof(char[MAX_LINES][MAX_LINE_LENGTH]));
+        uint64_t *lines = malloc(sizeof(uint64_t) * MAX_LINES);
         if (!lines) {
             perror("malloc failed");
             return 1;
@@ -153,32 +144,47 @@ int main() {
         FILE *fp = fopen("p1.txt", "w");
         printf("[Victim] address of func1: %p\n", f1);
 
-        asm volatile("mrs %[start], S3_2_c15_c0_0" : [start]"=r"(start));
-        while(1) {
-            usleep(10);
-            int input = rand() % 2;
+        /* branchless */       
+        uint64_t counter = 0;
+        uint64_t limit = 1000;
 
-            f1(1);
-            asm volatile("dsb sy" ::: "memory");
-            asm volatile("mrs %[now], S3_2_c15_c0_0" : [now]"=r"(now));
-            // fprintf(fp, "%llu\n", now);
-            snprintf(lines[n++], MAX_LINE_LENGTH, "%llu\n", now);
-            if ((now - start) >= (uint64_t)testsec * 1000000000ULL) {
-                break;
-            }
+        // 종료 조건이 명시적 branch 없이 평가되도록 만듦
+        while (1) {
+            // --- 여기에 하고 싶은 작업 ---
+            delay(100000);
+            f1(0); // victim branch
+            now = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+            lines[n++] = now;
+
+            // 탈출 처리
+            uint64_t diff = counter - limit;
+            uint64_t continue_mask = (diff >> 63) & 1;  // 1이면 반복, 0이면 종료
+
+            // 종료 처리 - branch 없이 loop 탈출
+            // 방법: break_mask를 포인터에 곱해서 null이면 no-op, 아니면 break
+            void* targets[] = {&&break_loop, &&continue_loop};
+            goto *targets[continue_mask];
+
+    continue_loop:
+            counter++;
         }
 
-        for (int i = 0; i < MAX_LINES; ++i) {
-            fputs(lines[i], fp);
+    break_loop:
+        printf("Loop ended at counter = %llu\n", counter);
+
+        for (int i = 0; i < n; ++i) {
+            fprintf(fp, "%llu\n", lines[i]);
         }
-        fclose(fp);
-        free(lines);
-        printf("Victim(Child) End\n");
-    } 
+        /* branchless */
+            fclose(fp);
+            free(lines);
+            printf("Victim(Child) End\n");
+        } 
     else {
         // Parent = Attacker
         
-        char (*lines)[MAX_LINE_LENGTH] = malloc(sizeof(char[MAX_LINES][MAX_LINE_LENGTH]));
+        // char (*lines)[MAX_LINE_LENGTH] = malloc(sizeof(char[MAX_LINES][MAX_LINE_LENGTH]));
+        uint64_t (*lines)[3] = malloc(sizeof(uint64_t[MAX_LINES][3]));
         if (!lines) {
             perror("malloc failed");
             return 1;
@@ -192,28 +198,41 @@ int main() {
         FILE *fp = fopen("p2.txt", "w");
         printf("[Spy] address of f1: %p\n", f1);
 
-        asm volatile("mrs %[start], S3_2_c15_c0_0" : [start]"=r"(start));
-        uint64_t previous = start;
-        while(1) {		
-            asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
-            asm volatile("dsb sy" ::: "memory");
-            f1(0); // not-taken
-            asm volatile("dsb sy" ::: "memory");
-            asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));
-            latency = t2 - t1;
+        /* branchless */
+        uint64_t counter = 0;
+        uint64_t limit = 2000000;
 
-            asm volatile("mrs %[now], S3_2_c15_c0_0" : [now]"=r"(now));
-            // fprintf(fp, "%llu, %llu, %llu, %llu\n", t1, t2, t2 - t1, now - previous);
-            snprintf(lines[n++], MAX_LINE_LENGTH, "%llu, %llu, %llu, %llu\n", t1, t2, t2 - t1, now - previous);
-            previous = now;
-            if ((now - start) >= (uint64_t)testsec * 1000000000ULL) {
-                break;
-            }
+        // 종료 조건이 명시적 branch 없이 평가되도록 만듦
+        while (1) {
+            // --- 여기에 하고 싶은 작업 ---
+            t1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+            f1(1); // attacker branch
+            t2 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+            lines[n][0] = t1;
+            lines[n][1] = t2;
+            lines[n][2] = t2 - t1;
+            n++;
+
+            // 탈출 처리
+            uint64_t diff = counter - limit;
+            uint64_t continue_mask = (diff >> 63) & 1;  // 1이면 반복, 0이면 종료
+
+            // 종료 처리 - branch 없이 loop 탈출
+            // 방법: break_mask를 포인터에 곱해서 null이면 no-op, 아니면 break
+            void* targets[] = {&&break_loop2, &&continue_loop2};
+            goto *targets[continue_mask];
+
+    continue_loop2:
+            counter++;
         }
 
-        for (int i = 0; i < MAX_LINES; ++i) {
-            fputs(lines[i], fp);
+    break_loop2:
+        printf("Loop ended at counter = %llu\n", counter);
+
+        for (int i = 0; i < n; ++i) {
+            fprintf(fp, "%llu, %llu, %llu, %llu\n", lines[i][0], lines[i][1], lines[i][2], lines[i][2]);
         }
+        /* branchless */
         fclose(fp);
         free(lines);
         printf("Attacker(Parent) End\n");

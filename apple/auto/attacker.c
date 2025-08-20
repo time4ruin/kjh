@@ -50,7 +50,7 @@ void attacker(){
 
     /* branchless */
     uint64_t counter = 0;
-    uint64_t limit = 2000000;
+    uint64_t limit = 100000;
     uint64_t previous;
     asm volatile("dsb ish");
     asm volatile("isb");
@@ -59,12 +59,12 @@ void attacker(){
 
     // 종료 조건이 명시적 branch 없이 평가되도록 만듦
     while (1) {
-        // --- 여기에 하고 싶은 작업 ---
+        delay(100000);
         asm volatile("dsb ish");
         asm volatile("isb");
         asm volatile("mrs %[t1], S3_2_c15_c0_0" : [t1]"=r"(t1));
         asm volatile("isb");
-        f1(1); // attacker branch
+        f1(0); // attacker branch
         asm volatile("dsb ish");
         asm volatile("isb");
         asm volatile("mrs %[t2], S3_2_c15_c0_0" : [t2]"=r"(t2));

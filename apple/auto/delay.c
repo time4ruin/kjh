@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <mach/mach_time.h>
+#include <mach/mach.h>
 #include "common.h"
 
 void delay(const uint64_t limit) {
@@ -26,4 +28,14 @@ loop:
 done:
         return;
     }
+}
+
+void sleep_nanos(uint64_t nanoseconds) {
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+
+    uint64_t now = mach_absolute_time();
+    uint64_t deadline = now + nanoseconds * info.denom / info.numer;
+
+    mach_wait_until(deadline);
 }

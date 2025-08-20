@@ -1,7 +1,7 @@
 import numpy as np
 import traceback
 
-def process_files_with_overlap_and_count(time_file, data_file, threshold=1.5):
+def process_files_with_overlap_and_count(time_file, data_file, threshold=3):
     try:
         # 1번 파일에서 시간 값 읽기
         with open(time_file, 'r') as file:
@@ -14,7 +14,7 @@ def process_files_with_overlap_and_count(time_file, data_file, threshold=1.5):
                 parts = line.strip().split(',')
 
                 time = float(parts[1].strip())
-                value = float(parts[3].strip())
+                value = float(parts[2].strip())
                 data_entries.append((time, value))
         
         # 데이터를 시간 순으로 정렬 (필요한 경우)
@@ -75,6 +75,8 @@ def process_files_with_overlap_and_count(time_file, data_file, threshold=1.5):
             for t1, b1c, b1t in transition_info:
                 f.write(f"{int(t1)}, {b1c}/{b1t}\n")
                 
+                if b1t == 0:
+                    break
                 # 통계 수집
                 total += 1
                 if b1c >= 1:

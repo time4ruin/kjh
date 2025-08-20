@@ -1,17 +1,19 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <time.h>
-#include <math.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <assert.h>
 
 typedef struct {
     uint64_t value;
     int count;
 } Entry;
 
-int compare_desc(const void *a, const void *b) {
-    return ((Entry*)b)->count - ((Entry*)a)->count;
+static int cmp_value_asc(const void *a, const void *b) {
+    const Entry *ea = (const Entry *)a;
+    const Entry *eb = (const Entry *)b;
+    if (ea->value < eb->value) return -1;  // 오름차순
+    if (ea->value > eb->value) return 1;
+    return 0;
 }
 
 void print_histogram(uint64_t *arr, int size, const char *label) {
@@ -35,14 +37,19 @@ void print_histogram(uint64_t *arr, int size, const char *label) {
         }
     }
 
-    qsort(entries, entry_count, sizeof(Entry), compare_desc);
+    // ★ 여기 확인: compare_desc 말고 cmp_value_asc 사용
+    qsort(entries, entry_count, sizeof(Entry), cmp_value_asc);
+
+    // (선택) 정렬 검증
+    for (int i = 1; i < entry_count; i++) {
+        assert(entries[i-1].value <= entries[i].value);
+    }
 
     printf("=== %s ===\n", label);
     for (int i = 0; i < entry_count; i++) {
-        printf("%llu: %d\n", entries[i].value, entries[i].count);
+        printf("%" PRIu64 ": %d\n", entries[i].value, entries[i].count);
     }
     printf("\n");
 
     free(entries);
 }
-

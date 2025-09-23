@@ -6,3 +6,5 @@ int b1();
 
 void victim();
 void attacker();
+
+void delay(const uint64_t limit);

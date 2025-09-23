@@ -39,8 +39,9 @@ void victim(){
     uint64_t limit = 1000;
     int n = 0;
     while(1) {
-        usleep(10);
-        int input = rand() % 2;
+        // usleep(10);
+        delay(100000);
+        // int input = rand() % 2;
 
         b1(0);
         clock_gettime(CLOCK_REALTIME, &ts);

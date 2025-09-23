@@ -36,7 +36,7 @@ void attacker(){
     // } while ((ts.tv_sec - start.tv_sec) < testsec);
 
     uint64_t counter = 0;
-    uint64_t limit = 200000;
+    uint64_t limit = 1000000;
     int n = 0;
     clock_gettime(CLOCK_REALTIME, &ts);
     long long previous = (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;

@@ -1,4 +1,5 @@
 import numpy as np
+import traceback
 
 def process_files_with_overlap_and_count(time_file, data_file, threshold=2.0):
     try:
@@ -11,10 +12,10 @@ def process_files_with_overlap_and_count(time_file, data_file, threshold=2.0):
         with open(data_file, 'r') as file:
             for line in file:
                 parts = line.strip().split(',')
-                if len(parts) == 2:
-                    time = float(parts[0].strip())
-                    value = float(parts[1].strip())
-                    data_entries.append((time, value))
+
+                time = float(parts[0].strip())
+                value = float(parts[1].strip())
+                data_entries.append((time, value))
         
         # 데이터를 시간 순으로 정렬 (필요한 경우)
         data_entries.sort(key=lambda x: x[0])
@@ -30,40 +31,70 @@ def process_files_with_overlap_and_count(time_file, data_file, threshold=2.0):
             print("Not enough overlapping time intervals between the two files.")
             return
 
-        # Large values 총 개수
-        total_large_values = 0
-        total = 0
+        # 개선
+        anomaly_counts = [0] * (len(relevant_times) - 1)
+        total_counts = [0] * (len(relevant_times) - 1)
+        transition_info = []
 
-        # 시간 간격 처리 및 데이터 분석
+        rt_index = 0  # relevant_times 포인터
+
+        for i in range(1, len(data_entries) - 1):
+            t1, v1 = data_entries[i - 1]
+            t2, v2 = data_entries[i]
+            t3, v3 = data_entries[i + 1]
+
+            # 현재 t2가 속한 구간을 찾기 위해 rt_index를 증가
+            while rt_index < len(relevant_times) - 1 and t2 >= relevant_times[rt_index + 1]:
+                rt_index += 1
+
+            if rt_index >= len(relevant_times) - 1:
+                break  # 더 이상 검사할 구간 없음
+
+            # 이상치 여부 판단
+            neighbor_avg = (v1 + v3) / 2
+            is_anomaly = v2 > neighbor_avg * threshold
+
+            total_counts[rt_index] += 1
+            if is_anomaly:
+                anomaly_counts[rt_index] += 1
+
+        # 결과 구성
         for i in range(len(relevant_times) - 1):
-            start_time = relevant_times[i]
-            end_time = relevant_times[i + 1]
+            t_start = relevant_times[i]
+            b1c = anomaly_counts[i]
+            b1t = total_counts[i]
+            transition_info.append((t_start, b1c, b1t))
 
-            # 해당 시간 구간에 속하는 데이터 필터링
-            relevant_data = [value for time, value in data_entries if start_time <= time < end_time]
-            total += 1
+        # Large values 총 개수
+        total = 0
+        hit = 0
+        b1c_count = {0: 0, 1: 0, '2+': 0}
 
-            if relevant_data:
-                # 평균 계산
-                mean_value = np.mean(relevant_data)
+        # 결과 파일 출력
+        with open('result.txt', 'w') as f:
+            for t1, b1c, b1t in transition_info:
+                f.write(f"{int(t1)}, {b1c}/{b1t}\n")
+                
+                # 통계 수집
+                total += 1
+                if b1c >= 1:
+                    hit += 1
+                if b1c in (0, 1):
+                    b1c_count[b1c] += 1
+                else:
+                    b1c_count['2+'] += 1
 
-                # 평균보다 threshold 배 이상 큰 값 확인
-                large_values = [value for value in relevant_data if value > mean_value * threshold]
-                if large_values:
-                    total_large_values += 1 # 총 개수 추가
-
-                # if large_values:
-                #     print(f"Between {start_time} and {end_time}, large values found: {large_values}")
-                # else:
-                #     print(f"Between {start_time} and {end_time}, no large values found.")
-            else:
-                print(f"Between {start_time} and {end_time}, no data available.")
-
-        # 총 large values 출력
-        print(f"\nTotal large values: {total_large_values}/{total}")
+        # 통계 요약 출력
+        print("\n======== Summary ========")
+        print(f"Total               : {hit}/{total}")
+        print(f"misprediction = 0   : {b1c_count[0]}")
+        print(f"misprediction = 1   : {b1c_count[1]}")
+        print(f"misprediction >= 2  : {b1c_count['2+']}")
+        print(f"ratio               : {hit / total * 100:.2f}")
 
     except Exception as e:
         print(f"Error: {e}")
+        traceback.print_exc()
 
 # 사용 예시
 time_file = 'p1.txt'

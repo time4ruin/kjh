@@ -6,3 +6,4 @@
 *.kc.development
 venv/
 tmp.c
+*.db

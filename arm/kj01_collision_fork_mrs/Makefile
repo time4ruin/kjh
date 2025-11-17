@@ -1,6 +1,7 @@
 CC      = aarch64-linux-gnu-gcc
 CFLAGS  = -O0 -march=armv8-a -static
-LDFLAGS = -no-pie -static -lm
+LDFLAGS = -no-pie -static
+LDLIBS  = -lm
 TARGET  = test.bin
 
 SRC_ALL = main.c victim.c attacker.c delay.c set_ghr.c branches.c utils.c
@@ -28,7 +29,7 @@ branches.s: branches.c
 
 # 2) C/S → 바이너리 (중간 .o 파일 생성 안 함)
 bin:
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRC_C) $(BRANCHES_INPUT)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRC_C) $(BRANCHES_INPUT) $(LDLIBS)
 
 clean:
 	rm -f $(TARGET) branches.s

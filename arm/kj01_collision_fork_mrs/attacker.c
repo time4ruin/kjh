@@ -18,7 +18,7 @@ void attacker(){
     int n = 0;
 
     FILE *fp = fopen("p2.txt", "w");
-    printf("[Attacker] address of branch1: %p\n", branch1);
+    printf("[Attacker] address of inner branch: %p\n", inner);
 
     /* branchless */
     uint64_t counter = 0;
@@ -28,8 +28,8 @@ void attacker(){
     // 종료 조건이 명시적 branch 없이 평가되도록 만듦
     while (1) {
         delay(100000);
-        set_ghr();
-        latency = branch1(0); // attacker branch
+        // set_ghr();
+        latency = inner(0); // attacker branch
         
         __asm__ volatile ("dsb sy" ::: "memory");
         __asm__ volatile ("isb" ::: "memory");        

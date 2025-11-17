@@ -19,7 +19,7 @@ void victim(){
     int n = 0;
 
     FILE *fp = fopen("p1.txt", "w");
-    printf("[Victim] address of branch1: %p\n", branch1);
+    printf("[Attacker] address of inner branch: %p\n", inner);
 
     /* branchless */       
     uint64_t counter = 0;
@@ -30,8 +30,8 @@ void victim(){
         delay(10000000);
         // sched_yield();
         // usleep(100);
-        set_ghr();
-        branch1(1); // victim branch
+        // set_ghr();
+        inner(1); // victim branch
 
         __asm__ volatile ("dsb sy" ::: "memory");
         __asm__ volatile ("isb" ::: "memory");

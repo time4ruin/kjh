@@ -5,3 +5,27 @@ source ~/.bashrc
 
 aarch64 크로스 컴파일한 바이너리 디버깅하는 방법
 gdb-multiarch
+
+
+# Tip (~/.bashrc)
+alias adbwin="/mnt/c/Users/time4/platform-tools/adb.exe"
+adbtest() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: adbtest <cpu_id>"
+        echo "Example: adbtest 6"
+        return 1
+    fi
+
+    local CPU=$1
+    local SRC=./test.bin
+    local DST=/data/local/tmp/test.bin
+
+    echo "[+] Pushing $SRC → $DST ..."
+    adbwin push "$SRC" "$DST" >/dev/null || { echo "push failed"; return 1; }
+
+    echo "[+] Setting executable permission ..."
+    adbwin shell chmod +x "$DST" || { echo "chmod failed"; return 1; }
+
+    echo "[+] Running on CPU $CPU ..."
+    adbwin shell "taskset $CPU $DST"
+}

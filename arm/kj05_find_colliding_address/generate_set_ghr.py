@@ -5,7 +5,7 @@ import subprocess
 import os
 import io
 
-def generate(branch_count=10000, out_c="set_ghr.c"):
+def generate(branch_count=500, out_c="set_ghr.c"):
     random.seed()
     s = io.StringIO()
 

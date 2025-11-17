@@ -7,12 +7,10 @@
 // memory load
 #define memory_access(x) __asm__ volatile("LDR x10, [%[addr]]" :: [addr] "r" (x) : "x10", "memory")
 
-int b1();
-
 void set_ghr();
 
-uint64_t branch1(int input);
-uint64_t branch2(int input);
+uint64_t inner(int input);
+uint64_t outer(int input);
 
 void attacker();
 void victim();

@@ -388,7 +388,7 @@ def main():
             )
 
         # dummy2 NOP 개수를 0부터 99999까지 늘려가며 실험
-        for n in range(0, 100000):
+        for n in range(0, 5000):
             try:
                 b1, b2, da, avg_hit, avg_conj, avg_miss = run_single_experiment(
                     pad_state,
@@ -412,4 +412,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    for i in range(0, 10):
+        main()

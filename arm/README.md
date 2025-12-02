@@ -29,3 +29,6 @@ adbtest() {
     echo "[+] Running on CPU $CPU ..."
     adbwin shell "taskset $CPU $DST"
 }
+
+# 스케줄러 우선순위 조정
+chrt-f 99 taskset 1 ./test.bin (루트권한이어야 함)

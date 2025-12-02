@@ -17,10 +17,6 @@ void set_ghr();
 uint64_t branch1(int input);
 uint64_t branch2(int input);
 
-void attacker();
-void victim();
-
-void delay(const uint64_t limit);
-void sleep_nanos(uint64_t nanoseconds);
-
 void print_histogram(uint64_t *arr, int size, const char *label);
+double trimmed_mean(uint64_t *arr, size_t n, size_t trim);
+double trimmed_stddev(uint64_t *arr, size_t n, size_t trim);

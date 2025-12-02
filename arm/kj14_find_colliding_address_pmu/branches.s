@@ -39,7 +39,7 @@ dummy1:
 	.cfi_startproc
 #APP
 // 35 "branches.c" 1
-	.rept 145
+	.rept 149
 	nop
 	.endr
 	
@@ -209,61 +209,7 @@ dummy2:
 	.cfi_startproc
 #APP
 // 125 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 126 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 127 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 128 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 129 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 130 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 131 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 132 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 133 "branches.c" 1
-	.rept 8000
-	nop
-	.endr
-	
-// 0 "" 2
-// 134 "branches.c" 1
-	.rept 3103
+	.rept 1100
 	nop
 	.endr
 	
@@ -359,16 +305,16 @@ branch2:
 	bl	perror
 .L15:
 #APP
-// 172 "branches.c" 1
+// 163 "branches.c" 1
 	dsb sy
 // 0 "" 2
-// 173 "branches.c" 1
+// 164 "branches.c" 1
 	isb
 // 0 "" 2
 #NO_APP
 	ldr	w0, [sp, 12]
 #APP
-// 174 "branches.c" 1
+// 165 "branches.c" 1
 	.global branch2_eq_label  
 	cmp    w0, #0      
 	branch2_eq_label:         
@@ -381,7 +327,7 @@ branch2:
 	branch2_end:              
 	
 // 0 "" 2
-// 189 "branches.c" 1
+// 180 "branches.c" 1
 	isb
 // 0 "" 2
 #NO_APP

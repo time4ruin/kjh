@@ -2,6 +2,11 @@
 
 #include "common.h"
 
+void dummy(){
+    NOP_REPEAT(1);
+}
+
+ATTR
 uint64_t branch1(int input)
 {
     uint64_t t1, t2;
@@ -25,17 +30,7 @@ uint64_t branch1(int input)
     return t2 - t1;
 }
 
-void dummy_001()
-{
-    asm volatile(".p2align   14\n\t");
-    __asm__ __volatile__("nop");
-}
-void dummy_002()
-{
-    asm volatile(".p2align   14\n\t");
-    __asm__ __volatile__("nop");
-}
-
+ATTR
 uint64_t branch2(int input)
 {
     uint64_t t1, t2;

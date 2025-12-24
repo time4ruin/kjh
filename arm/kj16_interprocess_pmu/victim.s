@@ -53,7 +53,7 @@ branch_nested:
 	ldr	w1, [sp, 8]
 #APP
 // 38 "victim.c" 1
-	.rept 149                                       
+	.rept 8000                                       
 	nop                                             
 	.endr                                           
 	.global branch1_eq_label                        
@@ -62,6 +62,15 @@ branch_nested:
 	branch1_eq_label:                               
 	b.eq   branch1_else                             
 	branch1_if:                                     
+	.rept 8000                                      
+	nop                                             
+	.endr                                           
+	.rept 8000                                      
+	nop                                             
+	.endr                                           
+	.rept 8000                                      
+	nop                                             
+	.endr                                           
 	.rept 8000                                      
 	nop                                             
 	.endr                                           
@@ -143,7 +152,7 @@ main:
 	str	x1, [sp, 104]
 	mov	x1, 0
 #APP
-// 113 "victim.c" 1
+// 122 "victim.c" 1
 	ldr    x2, =branch_eq_label
 	ldr    x1, =branch1_eq_label
 	ldr    x0, =branch2_eq_label
@@ -168,6 +177,10 @@ main:
 	adrp	x0, .LC2
 	add	x0, x0, :lo12:.LC2
 	bl	printf
+	adrp	x0, :got:stdout
+	ldr	x0, [x0, :got_lo12:stdout]
+	ldr	x0, [x0]
+	bl	fflush
 	mov	x0, 23040
 	movk	x0, 0x262, lsl 16
 	bl	malloc
@@ -195,22 +208,23 @@ main:
 	mov	x0, 38528
 	movk	x0, 0x98, lsl 16
 	bl	delay
+	mov	w1, 1
 	mov	w0, 1
-	bl	branch
+	bl	branch_nested
 #APP
-// 149 "victim.c" 1
+// 159 "victim.c" 1
 	dsb sy
 // 0 "" 2
-// 150 "victim.c" 1
+// 160 "victim.c" 1
 	isb
 // 0 "" 2
-// 151 "victim.c" 1
+// 161 "victim.c" 1
 	mrs x0, cntvct_el0
 // 0 "" 2
 #NO_APP
 	str	x0, [sp, 64]
 #APP
-// 152 "victim.c" 1
+// 162 "victim.c" 1
 	isb
 // 0 "" 2
 #NO_APP

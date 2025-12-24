@@ -153,8 +153,8 @@ int main(){
         // sched_yield();
         // usleep(100);
         
-        // branch_nested(0, 1); // victim branch
-        branch(1);
+        branch_nested(1, 1); // victim branch
+        // branch(1);
 
         __asm__ volatile ("dsb sy" ::: "memory");
         __asm__ volatile ("isb" ::: "memory");

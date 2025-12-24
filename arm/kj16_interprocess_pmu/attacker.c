@@ -1,12 +1,3 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-
-#include "common.h"
-
 #define _GNU_SOURCE
 #include <linux/perf_event.h>
 #include <asm/unistd.h>
@@ -14,8 +5,11 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <math.h>
 
 #include "common.h"
 
@@ -158,12 +152,14 @@ uint64_t inner(int input)
     }
 
     // 카운터 초기화 후 시작
-    if (ioctl(fd, PERF_EVENT_IOC_RESET, 0) == -1) {
-        perror("ioctl RESET");
-    }
-    if (ioctl(fd, PERF_EVENT_IOC_ENABLE, 0) == -1) {
-        perror("ioctl ENABLE");
-    }
+    // if (ioctl(fd, PERF_EVENT_IOC_RESET, 0) == -1) {
+    //     perror("ioctl RESET");
+    // }
+    // if (ioctl(fd, PERF_EVENT_IOC_ENABLE, 0) == -1) {
+    //     perror("ioctl ENABLE");
+    // }
+    ioctl(fd, PERF_EVENT_IOC_RESET, 0);
+    ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
     __asm__ volatile ("isb" ::: "memory");
 
     // === 여기 사이가 측정 구간 ===
@@ -239,7 +235,7 @@ int main(){
     while (1) {
         delay(100000);
 
-        br_mis_pred = outer(0); // attacker branch
+        br_mis_pred = inner(0); // attacker branch
         
         __asm__ volatile ("dsb sy" ::: "memory");
         __asm__ volatile ("isb" ::: "memory");        

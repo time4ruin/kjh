@@ -31,4 +31,4 @@ adbtest() {
 }
 
 # 스케줄러 우선순위 조정
-chrt-f 99 taskset 1 ./test.bin (루트권한이어야 함)
+chrt -f 99 taskset 1 ./test.bin (루트권한이어야 함)
